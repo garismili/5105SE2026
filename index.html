@@ -945,6 +945,44 @@ body {
           </div>
         </div>
       </div>
+      <!-- Pencacah Awal -->
+      <div class="col-md-auto">
+        <label class="filter-label">Pencacah Awal</label>
+        <div class="ms-wrap" id="ms-wrap-filterPencacahAwal">
+          <div class="ms-trigger" id="ms-trigger-filterPencacahAwal" onclick="toggleMsDropdown('filterPencacahAwal')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterPencacahAwal">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterPencacahAwal">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterPencacahAwal',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterPencacahAwal')">Pilih Semua</button>
+              <button onclick="msClearAll('filterPencacahAwal')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterPencacahAwal"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterPencacahAwal')">Terapkan</button></div>
+          </div>
+        </div>
+      </div>
+      <!-- Pengawas Awal -->
+      <div class="col-md-auto">
+        <label class="filter-label">Pengawas Awal</label>
+        <div class="ms-wrap" id="ms-wrap-filterPengawasAwal">
+          <div class="ms-trigger" id="ms-trigger-filterPengawasAwal" onclick="toggleMsDropdown('filterPengawasAwal')">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterPengawasAwal">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterPengawasAwal">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterPengawasAwal',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterPengawasAwal')">Pilih Semua</button>
+              <button onclick="msClearAll('filterPengawasAwal')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterPengawasAwal"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterPengawasAwal')">Terapkan</button></div>
+          </div>
+        </div>
+      </div>
       <!-- Reset button -->
       <div class="col-md-auto d-flex align-items-end">
         <button class="btn btn-outline-secondary btn-sm" onclick="resetMainFilters()" style="font-size:11px; padding:5px 12px; border-radius:8px;">↺ Reset</button>
@@ -984,6 +1022,7 @@ body {
             <th>Assignment</th><th>Nama</th><th>Alamat</th><th>SBR</th>
             <th>Username</th><th>User</th><th>Provinsi</th>
             <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th>
+            <th>Pencacah Awal</th><th>Pengawas Awal</th>
           </tr>
         </thead>
         <tbody>
@@ -1021,7 +1060,8 @@ function initDashboard(data, fromCache, fetchedAt) {
     `Diambil: ${dateStr} pukul ${timeStr} WITA${cacheNote}`;
   allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
   document.getElementById('topbarTotal').textContent = `${rawData.length.toLocaleString()} record`;
-  fillFilters(); buildTable(); fillPivotFilters(); resolveSpecialKeys(); renderPivot();
+  resolveSpecialKeys();
+  fillFilters(); buildTable(); fillPivotFilters(); renderPivot();
   const btn = document.getElementById('btnRefreshData');
   if(btn) btn.disabled = false;
 }
@@ -1100,14 +1140,17 @@ const MS_SELECTED = {
   filterKabupaten: new Set(),
   filterKecamatan: new Set(),
   filterDesa: new Set(),
-  filterSLS: new Set()
+  filterSLS: new Set(),
+  filterPencacahAwal: new Set(),
+  filterPengawasAwal: new Set()
 };
 
 // field mapped to each ms id
 const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
-  filterDesa:"Desa", filterSLS:"SLS"
+  filterDesa:"Desa", filterSLS:"SLS",
+  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal"
 };
 
 const MAIN_IDS = Object.keys(MAIN_FIELD);
@@ -1254,7 +1297,8 @@ function fillFilters(){
 $.fn.dataTable.ext.search.push(function(s, data){
   const colMap = {
     filterAssignment: 0, filterUsername: 4, filterUser: 5,
-    filterKabupaten: 7, filterKecamatan: 8, filterDesa: 9, filterSLS: 10
+    filterKabupaten: 7, filterKecamatan: 8, filterDesa: 9, filterSLS: 10,
+    filterPencacahAwal: 11, filterPengawasAwal: 12
   };
   return MAIN_IDS.every(id => {
     const sel = MS_SELECTED[id];
@@ -1306,7 +1350,9 @@ function buildTable(){
     columns:[
       {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
       {data:'Username'},{data:'User'},{data:'Provinsi'},
-      {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'}
+      {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'},
+      {data:'Pencacah Awal', defaultContent:''},
+      {data:'Pengawas Awal', defaultContent:''}
     ]
   });
   table.on('draw',function(){
@@ -1427,6 +1473,13 @@ function resolveSpecialKeys(){
     elW.innerHTML = '<option value="">Semua</option>';
     fillSelectEl(elW, unique(PENGAWAS_KEY));
   }
+
+  // Normalisasi: pastikan setiap row punya field "Pencacah Awal" & "Pengawas Awal"
+  // dengan nama konsisten, terlepas dari nama kolom asli di CSV
+  rawData.forEach(r=>{
+    r['Pencacah Awal'] = PENCACAH_KEY ? (r[PENCACAH_KEY] || '') : '';
+    r['Pengawas Awal'] = PENGAWAS_KEY ? (r[PENGAWAS_KEY] || '') : '';
+  });
 }
 
 function showColumnNames(){
@@ -2547,7 +2600,9 @@ async function exportDetailExcel(){
       {key:'Kabupaten',  label:'Kabupaten'},
       {key:'Kecamatan',  label:'Kecamatan'},
       {key:'Desa',       label:'Desa'},
-      {key:'SLS',        label:'SLS'}
+      {key:'SLS',        label:'SLS'},
+      {key:'Pencacah Awal', label:'Pencacah Awal'},
+      {key:'Pengawas Awal', label:'Pengawas Awal'}
     ];
 
     const workbook = new ExcelJS.Workbook();
