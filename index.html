@@ -806,6 +806,9 @@ body {
     <div class="sh-bar" style="background:linear-gradient(180deg,#fd7e14,#ffc107)"></div>
     <div class="sh-title">Data Detail</div>
     <div class="sh-count" id="cntDetail"></div>
+    <button type="button" class="btn btn-outline-success btn-sm" onclick="exportDetailExcel()"
+      style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20"
+      title="Download seluruh data detail (sesuai filter aktif) sebagai file Excel (.xlsx)">↓ Excel</button>
   </div>
   <div class="panel">
     <div class="row g-2 mb-3" id="mainFilterRow">
@@ -2152,12 +2155,49 @@ function resetPivot(){
   renderPivot();
 }
 
+// ── Helper: tampilkan status "sedang memproses" pada tombol export ──
+function setBtnBusy(onclickName, busy, busyLabel){
+  const btn = document.querySelector(`button[onclick="${onclickName}()"]`);
+  if(!btn) return;
+  if(busy){
+    btn.dataset.origText = btn.textContent;
+    btn.textContent = busyLabel;
+    btn.disabled = true;
+    btn.style.opacity = '0.65';
+    btn.style.cursor = 'wait';
+  } else {
+    btn.textContent = btn.dataset.origText || btn.textContent;
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.style.cursor = '';
+  }
+}
+
+// ── Helper: kunci posisi scroll selama proses download (cegah "lompat ke atas") ──
+function downloadBlob(blob, filename){
+  const scrollX = window.scrollX, scrollY = window.scrollY;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:false, view:window}));
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  // Restore posisi scroll (beberapa browser menggeser scroll saat anchor di-append/remove)
+  requestAnimationFrame(() => window.scrollTo(scrollX, scrollY));
+}
+
 function exportPivotCSV(){
   const tbl = document.getElementById('pvTable');
   if(!tbl || !tbl.querySelector('thead')){
     alert('Tabel pivot belum tersedia. Klik Terapkan terlebih dahulu.');
     return;
   }
+  setBtnBusy('exportPivotCSV', true, '⏳ Memproses…');
 
   const esc = v => {
     const s = String(v == null ? '' : v).replace(/\s+/g,' ').trim();
@@ -2195,18 +2235,8 @@ function exportPivotCSV(){
   const colField = (document.getElementById('pvColField') || {}).value || 'col';
   const bom = '\uFEFF';
   const blob = new Blob([bom + rows.join('\n')], {type:'text/csv;charset=utf-8;'});
-  const url  = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href     = url;
-  a.download = 'pivot_' + rowField + '_x_' + colField + '.csv';
-  a.target   = '_blank';
-  a.rel      = 'noopener noreferrer';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:false, view:window}));
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  downloadBlob(blob, 'pivot_' + rowField + '_x_' + colField + '.csv');
+  setBtnBusy('exportPivotCSV', false);
 }
 
 async function exportPivotExcel(){
@@ -2215,6 +2245,11 @@ async function exportPivotExcel(){
     alert('Tabel pivot belum tersedia. Klik Terapkan terlebih dahulu.');
     return;
   }
+  setBtnBusy('exportPivotExcel', true, '⏳ Membuat file…');
+  // Beri waktu browser untuk repaint tombol sebelum proses berat dimulai
+  await new Promise(r => setTimeout(r, 30));
+
+  try {
 
   // ── Helper: ambil computed background color suatu elemen ──
   const getBg = el => {
@@ -2394,9 +2429,16 @@ async function exportPivotExcel(){
     !(tr.classList.contains('subsls-child') && !tr.classList.contains('visible'))
   );
 
+  // colWidths dihitung sambil iterasi sekali (hindari double-loop)
+  const colWidths = headerTexts.map(h => (h||'').length);
+
   dataRows.forEach(tr => {
     const tdEls = [...tr.querySelectorAll('td')];
     const values = tdEls.map(td => cellText(td));
+    values.forEach((v, ci) => {
+      const len = v != null ? String(v).length : 0;
+      if(len > (colWidths[ci]||0)) colWidths[ci] = len;
+    });
     const xlRow  = worksheet.addRow(values);
     xlRow.height = 22;
 
@@ -2446,17 +2488,9 @@ async function exportPivotExcel(){
     });
   });
 
-  // ── Auto column width ──
+  // ── Auto column width (pakai cache, tanpa loop ulang) ──
   worksheet.columns.forEach((col, ci) => {
-    let max = (headerTexts[ci]||'').length;
-    dataRows.forEach(tr => {
-      const td = tr.querySelectorAll('td')[ci];
-      if(!td) return;
-      const v = cellText(td);
-      const len = v != null ? String(v).length : 0;
-      if(len > max) max = len;
-    });
-    col.width = Math.max(8, Math.min(max + 2, 42));
+    col.width = Math.max(8, Math.min((colWidths[ci]||8) + 2, 42));
   });
 
   // ── Auto-filter pada header ──
@@ -2468,17 +2502,114 @@ async function exportPivotExcel(){
   // ── Download ──
   const buf = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `pivot_${rowField}_x_${colField}.xlsx`;
-  a.target   = '_blank';
-  a.rel      = 'noopener noreferrer';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:false, view:window}));
-  document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  downloadBlob(blob, `pivot_${rowField}_x_${colField}.xlsx`);
+
+  } catch(err){
+    console.error('Export Excel gagal:', err);
+    alert('Gagal membuat file Excel: ' + (err.message||err));
+  } finally {
+    setBtnBusy('exportPivotExcel', false);
+  }
+}
+
+async function exportDetailExcel(){
+  if(!table){
+    alert('Tabel data belum tersedia.');
+    return;
+  }
+  setBtnBusy('exportDetailExcel', true, '⏳ Membuat file…');
+  await new Promise(r => setTimeout(r, 30));
+
+  try {
+    const thinBorder = {
+      top:    {style:'thin', color:{argb:'FFE2E8F0'}},
+      bottom: {style:'thin', color:{argb:'FFE2E8F0'}},
+      left:   {style:'thin', color:{argb:'FFE2E8F0'}},
+      right:  {style:'thin', color:{argb:'FFE2E8F0'}}
+    };
+    const hex2argb = hex => {
+      const h = hex.replace('#','');
+      if(h.length === 3) return 'FF' + h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      return 'FF' + h.toUpperCase();
+    };
+
+    // Ambil data sesuai filter aktif (sama seperti yang tampil di tabel)
+    const filtered = table.rows({search:'applied'}).data().toArray();
+
+    const columns = [
+      {key:'Assignment', label:'Assignment'},
+      {key:'Nama',       label:'Nama'},
+      {key:'Alamat',     label:'Alamat'},
+      {key:'SBR',        label:'SBR'},
+      {key:'Username',   label:'Username'},
+      {key:'User',       label:'User'},
+      {key:'Provinsi',   label:'Provinsi'},
+      {key:'Kabupaten',  label:'Kabupaten'},
+      {key:'Kecamatan',  label:'Kecamatan'},
+      {key:'Desa',       label:'Desa'},
+      {key:'SLS',        label:'SLS'}
+    ];
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'SE2026 Dashboard';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet('Data Detail', {
+      views: [{ state:'frozen', ySplit:1 }]
+    });
+
+    // Header row — gradient orange/yellow seperti section "Data Detail"
+    const headerTexts = columns.map(c => c.label);
+    const hRow = worksheet.addRow(headerTexts);
+    hRow.height = 28;
+    hRow.eachCell(cell => {
+      cell.fill   = {type:'pattern', pattern:'solid', fgColor:{argb:hex2argb('#fd7e14')}};
+      cell.font   = {bold:true, color:{argb:'FFFFFFFF'}, size:10, name:'Calibri'};
+      cell.border = thinBorder;
+      cell.alignment = {vertical:'middle', horizontal:'left', wrapText:true};
+    });
+
+    // Data rows dengan zebra stripe
+    const colWidths = headerTexts.map(h => h.length);
+    filtered.forEach((row, ri) => {
+      const values = columns.map(c => row[c.key] != null ? row[c.key] : '');
+      values.forEach((v, ci) => {
+        const len = String(v).length;
+        if(len > (colWidths[ci]||0)) colWidths[ci] = len;
+      });
+      const xlRow = worksheet.addRow(values);
+      xlRow.height = 20;
+      const bgHex = (ri % 2 === 0) ? '#ffffff' : '#f8fafc';
+      xlRow.eachCell(cell => {
+        cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:hex2argb(bgHex)}};
+        cell.font = {size:9, name:'Calibri', color:{argb:'FF334155'}};
+        cell.border = thinBorder;
+        cell.alignment = {vertical:'middle', horizontal:'left', wrapText:false};
+      });
+    });
+
+    // Auto column width
+    worksheet.columns.forEach((col, ci) => {
+      col.width = Math.max(8, Math.min((colWidths[ci]||8) + 2, 45));
+    });
+
+    // Auto-filter pada header
+    worksheet.autoFilter = {
+      from: {row:1, column:1},
+      to:   {row:1, column:headerTexts.length}
+    };
+
+    // Download
+    const buf = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    downloadBlob(blob, 'data_detail.xlsx');
+
+  } catch(err){
+    console.error('Export Data Detail gagal:', err);
+    alert('Gagal membuat file Excel: ' + (err.message||err));
+  } finally {
+    setBtnBusy('exportDetailExcel', false);
+  }
 }
 
 /* ══════════════════════════════════════
