@@ -1567,11 +1567,7 @@ function renderPivot(){
 
     lastPivotResult={rowField,colField,rowKeys,colKeys,count,rowTotal,colTotal,grand,
                    showPencacah,pencacahCount,pencacahGrand,pengawasName,
-                   showGeoCap,geoTotal,geoOpen,geoPgwDone,geoParent,
-                   isPencacahMode,isPengawasMode,
-                   showColV,showColW,
-                   progressCacahMap,progressRiksaMap,cekBangunanMap,
-                   hariKerja};
+                   showGeoCap,geoTotal,geoOpen,geoPgwDone,geoParent};
 
   // ── sort ──
   const sortMode = document.getElementById('pvSortMode') ? document.getElementById('pvSortMode').value : 'count_desc';
@@ -2059,148 +2055,62 @@ function resetPivot(){
 }
 
 function exportPivotCSV(){
-  if(!lastPivotResult) return;
-  const {
-    rowField, colField, rowKeys, colKeys, count, rowTotal, colTotal, grand,
-    showPencacah, pencacahCount, pencacahGrand, pengawasName,
-    showGeoCap, geoTotal, geoOpen, geoPgwDone, geoParent,
-    isPencacahMode, isPengawasMode,
-    showColV, showColW,
-    progressCacahMap, progressRiksaMap, cekBangunanMap,
-    hariKerja
-  } = lastPivotResult;
-
-  function esc(v){ const s=String(v==null?'':v); return (s.includes(',')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`:s; }
-
-  const findCol = pat => colKeys.find(k => pat.test(k)) || null;
-  const openColKey = findCol(/^open$/i) || findCol(/open/i);
-  const apvPgwKey  = findCol(/approved.+pengawas/i);
-  const rejPgwKey  = findCol(/rejected.+pengawas/i);
-  const revPgwKey  = findCol(/revoked.+pengawas/i);
-
-  const header = [rowField];
-  colKeys.forEach(c => { header.push(c); header.push(c + '_%'); });
-  header.push('Total');
-
-  if (showGeoCap) {
-    if (rowField === 'Desa' || rowField === 'SLS') header.push('Parent (Kec/Desa)');
-    header.push('Target Pendataan');
-    header.push('Capaian Pendataan (%)');
-    header.push('Selesai Pendataan');
-    header.push('Target Pemeriksaan');
-    header.push('Capaian Pemeriksaan (%)');
-    header.push('Selesai Pemeriksaan');
-    if (showColV) header.push('Progres Pencacahan Kemarin');
-    if (showColW) header.push('Progres Pemeriksaan Kemarin');
-    if (CEK_BANGUNAN_KEY) header.push('Sigma Cek Bangunan');
-  }
-  if (showPencacah) {
-    if (showColV) header.push('Progres Pencacahan Kemarin');
-    if (showColW) header.push('Progres Pemeriksaan Kemarin');
-    if (CEK_BANGUNAN_KEY) header.push('Sigma Cek Bangunan');
-    header.push('Target (Pencacah Awal)');
-    header.push('% OPEN/Target');
-    if (isPencacahMode) {
-      header.push('Capaian Harian Pencacahan');
-      if (PENGAWAS_KEY) header.push('Pengawas Awal');
-    }
-    if (isPengawasMode) header.push('Capaian Harian Pengawasan');
+  const tbl = document.getElementById('pvTable');
+  if(!tbl || !tbl.querySelector('thead')){
+    alert('Tabel pivot belum tersedia. Klik Terapkan terlebih dahulu.');
+    return;
   }
 
-  const rows = [header.map(esc).join(',')];
+  const esc = v => {
+    const s = String(v == null ? '' : v).replace(/\s+/g,' ').trim();
+    return (s.includes(',') || s.includes('"') || s.includes('\n'))
+      ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
 
-  rowKeys.forEach(r => {
-    const rt = rowTotal[r] || 0;
-    const row = [esc(r)];
-    colKeys.forEach(c => {
-      const v = count[r][c] || 0;
-      row.push(v);
-      row.push(rt > 0 ? ((v/rt)*100).toFixed(1)+'%' : '0%');
+  const cellText = td => {
+    // Ambil hanya .pv-val (angka utama), abaikan .pv-pct (persentase kecil)
+    const pvVal = td.querySelector('.pv-val');
+    if(pvVal) return pvVal.textContent.replace(/\s+/g,' ').trim();
+    const clone = td.cloneNode(true);
+    clone.querySelectorAll('i,.sort-icon,.sls-toggle-icon').forEach(el => el.remove());
+    clone.querySelectorAll('.sls-toggle').forEach(span => {
+      span.replaceWith(document.createTextNode(span.textContent));
     });
-    row.push(rt);
-    if (showGeoCap) {
-      const gt = geoTotal[r] || 0;
-      const go = geoOpen[r]  || 0;
-      const gpg = geoPgwDone[r] || 0;
-      if (rowField === 'Desa' || rowField === 'SLS') row.push(esc(geoParent[r] || ''));
-      row.push(gt > 0 ? gt : '-');
-      row.push(gt > 0 ? (((gt-go)/gt)*100).toFixed(1)+'%' : '-');
-      row.push(gt > 0 ? gt - go : '-');
-      row.push(gt > 0 ? gt : '-');
-      row.push(gt > 0 ? ((gpg/gt)*100).toFixed(1)+'%' : '-');
-      row.push(gpg > 0 ? gpg : '-');
-      if (showColV) row.push((progressCacahMap[r] || 0).toFixed(1));
-      if (showColW) row.push((progressRiksaMap[r] || 0).toFixed(1));
-      if (CEK_BANGUNAN_KEY) row.push(Math.round(cekBangunanMap[r] || 0));
-    }
-    if (showPencacah) {
-      const openCnt = openColKey ? (count[r][openColKey] || 0) : 0;
-      const target  = pencacahCount[r] || 0;
-      if (showColV) row.push((progressCacahMap[r] || 0).toFixed(1));
-      if (showColW) row.push((progressRiksaMap[r] || 0).toFixed(1));
-      if (CEK_BANGUNAN_KEY) row.push(Math.round(cekBangunanMap[r] || 0));
-      row.push(target > 0 ? target : '-');
-      row.push(target > 0 ? ((openCnt/target)*100).toFixed(1)+'%' : '-');
-      if (isPencacahMode) {
-        row.push(((target - openCnt) / hariKerja).toFixed(1));
-        if (PENGAWAS_KEY) row.push(esc(pengawasName[r] || ''));
-      }
-      if (isPengawasMode) {
-        const apv = apvPgwKey ? (count[r][apvPgwKey] || 0) : 0;
-        const rej = rejPgwKey ? (count[r][rejPgwKey] || 0) : 0;
-        const rev = revPgwKey ? (count[r][revPgwKey] || 0) : 0;
-        row.push(((apv+rej+rev) / hariKerja).toFixed(1));
-      }
-    }
-    rows.push(row.join(','));
+    return (clone.innerText || clone.textContent || '').replace(/\s+/g,' ').trim();
+  };
+
+  const rows = [];
+
+  // Header
+  const header = [...tbl.querySelectorAll('thead tr th')].map(th => {
+    const clone = th.cloneNode(true);
+    clone.querySelectorAll('i,.sort-icon').forEach(el => el.remove());
+    return esc((clone.innerText || clone.textContent || '').replace(/\s+/g,' ').trim());
+  });
+  rows.push(header.join(','));
+
+  // Data rows (skip hidden subsls-child)
+  tbl.querySelectorAll('tbody tr, tfoot tr').forEach(tr => {
+    if(tr.classList.contains('subsls-child') && !tr.classList.contains('visible')) return;
+    const cells = [...tr.querySelectorAll('td')].map(td => esc(cellText(td)));
+    if(cells.length) rows.push(cells.join(','));
   });
 
-  const totalRow = ['Total'];
-  colKeys.forEach(c => {
-    const v = colTotal[c] || 0;
-    totalRow.push(v);
-    totalRow.push(grand > 0 ? ((v/grand)*100).toFixed(1)+'%' : '0%');
-  });
-  totalRow.push(grand);
-  if (showGeoCap) {
-    const allGt  = Object.values(geoTotal).reduce((a,b)=>a+b, 0);
-    const allGo  = Object.values(geoOpen).reduce((a,b)=>a+b, 0);
-    const allGpg = Object.values(geoPgwDone).reduce((a,b)=>a+b, 0);
-    if (rowField === 'Desa' || rowField === 'SLS') totalRow.push('');
-    totalRow.push(allGt > 0 ? allGt : '-');
-    totalRow.push(allGt > 0 ? (((allGt-allGo)/allGt)*100).toFixed(1)+'%' : '-');
-    totalRow.push(allGt > 0 ? allGt - allGo : '-');
-    totalRow.push(allGt > 0 ? allGt : '-');
-    totalRow.push(allGt > 0 ? ((allGpg/allGt)*100).toFixed(1)+'%' : '-');
-    totalRow.push(allGpg);
-    if (showColV) totalRow.push(rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0).toFixed(1));
-    if (showColW) totalRow.push(rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0).toFixed(1));
-    if (CEK_BANGUNAN_KEY) totalRow.push(Math.round(rowKeys.reduce((s,r)=>s+(cekBangunanMap[r]||0),0)));
-  }
-  if (showPencacah) {
-    const totalOpen = openColKey ? (colTotal[openColKey] || 0) : 0;
-    if (showColV) totalRow.push(rowKeys.reduce((s,r)=>s+(progressCacahMap[r]||0),0).toFixed(1));
-    if (showColW) totalRow.push(rowKeys.reduce((s,r)=>s+(progressRiksaMap[r]||0),0).toFixed(1));
-    if (CEK_BANGUNAN_KEY) totalRow.push(Math.round(rowKeys.reduce((s,r)=>s+(cekBangunanMap[r]||0),0)));
-    totalRow.push(pencacahGrand > 0 ? pencacahGrand : '-');
-    totalRow.push(pencacahGrand > 0 ? ((totalOpen/pencacahGrand)*100).toFixed(1)+'%' : '-');
-    if (isPencacahMode) {
-      totalRow.push(((pencacahGrand - totalOpen) / hariKerja).toFixed(1));
-      if (PENGAWAS_KEY) totalRow.push('');
-    }
-    if (isPengawasMode) {
-      const apvT = apvPgwKey ? (colTotal[apvPgwKey]||0) : 0;
-      const rejT = rejPgwKey ? (colTotal[rejPgwKey]||0) : 0;
-      const revT = revPgwKey ? (colTotal[revPgwKey]||0) : 0;
-      totalRow.push(((apvT+rejT+revT) / hariKerja).toFixed(1));
-    }
-  }
-  rows.push(totalRow.join(','));
+  const rowField = (document.getElementById('pvRowField') || {}).value || 'pivot';
+  const colField = (document.getElementById('pvColField') || {}).value || 'col';
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
 
+  // Append ke body dulu agar .click() bekerja di semua browser
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\uFEFF' + rows.join('\n')], {type:'text/csv;charset=utf-8;'}));
-  a.download = `pivot_${rowField}_x_${colField}.csv`;
+  a.href     = url;
+  a.download = 'pivot_' + rowField + '_x_' + colField + '.csv';
+  a.style.display = 'none';
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 /* ══════════════════════════════════════
    MAP
@@ -2397,11 +2307,11 @@ function updateMap(filteredRows){
    const isOpen = asgn.toUpperCase() === 'OPEN';
    const marker = L.circleMarker([lat, lon], {
   radius: 6,
-  fillColor: color,
-  color: isOpen ? 'rgba(255,255,255,0.7)' : 'transparent',
-  weight: isOpen ? 1.2 : 0,
+  fillColor: isOpen ? 'transparent' : color,
+  color: isOpen ? 'rgba(255,255,255,0.85)' : 'transparent',
+  weight: isOpen ? 1.5 : 0,
   opacity: 1,
-  fillOpacity: isOpen ? 0.45 : 0.85
+  fillOpacity: isOpen ? 0 : 0.85
 });
     marker.bindPopup(`
       <div>
@@ -2449,8 +2359,7 @@ function updateMap(filteredRows){
             ? `background:${c};border:1.5px solid rgba(255,255,255,0.8);box-shadow:0 0 0 1px #94a3b8;`
             : `background:${c};`;
           return `<div><span class="legend-dot" style="${dotStyle}"></span>${k}</div>`;
-        })
-        ).join('');
+        }).join('');
       return d;
     };
     legend.addTo(mapInstance);
