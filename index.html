@@ -789,8 +789,9 @@ body {
         <div class="pivot-btn-group">
           <button type="button" class="btn btn-primary btn-sm" onclick="renderPivot()">Terapkan</button>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
-          <button type="button" class="btn btn-outline-success btn-sm" id="btnExportCSV">↓ CSV</button>
-          <button type="button" class="btn btn-outline-success btn-sm" id="btnExportExcel" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button><button type="button" class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
+          <button type="button" class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
         </div>
       </div>
     </div>
