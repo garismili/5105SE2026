@@ -6,7 +6,6 @@
 <title>Dashboard Monitoring SE2026 Kabupaten Klungkung</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-<link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
@@ -686,7 +685,17 @@ body {
       </a>
     </div>
   </div>
-  <div class="topbar-badge" id="topbarTotal">Memuat data…</div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-left:auto">
+    <div class="topbar-badge" id="topbarTotal">Memuat data…</div>
+    <button id="btnRefreshData" onclick="loadData(true)"
+      title="Paksa ambil data terbaru dari Google Sheets"
+      style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;
+             color:#fff;font-size:10px;font-weight:600;padding:3px 10px;cursor:pointer;
+             letter-spacing:.04em;opacity:.8;transition:opacity .15s"
+      onmouseover="this.style.opacity=1" onmouseout="this.style.opacity='.8'">
+      ↺ Refresh Data
+    </button>
+  </div>
 </div>
 
 <div class="container-fluid px-4 pb-4">
@@ -778,10 +787,10 @@ body {
           </select>
         </div>
         <div class="pivot-btn-group">
-          <button class="btn btn-primary btn-sm" onclick="renderPivot()">Terapkan</button>
-          <button class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
-          <button class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
-          <button class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="renderPivot()">Terapkan</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
+          <button type="button" class="btn btn-outline-success btn-sm" id="btnExportCSV">↓ CSV</button>
+          <button type="button" class="btn btn-outline-success btn-sm" id="btnExportExcel" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button><button type="button" class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
         </div>
       </div>
     </div>
@@ -987,35 +996,79 @@ body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ27Y0FnXR-U2sFBVHtKKspENrnedukpubHql2jJAzs23HSmZrIa6TQHytEqb8jbD-UWo0puQZ-AwSs/pub?output=csv";
 let rawData = [], table, allUsers = [];
 
-Papa.parse(CSV_URL, {
-  download:true, header:true, skipEmptyLines:true,
-  complete(results) {
-    rawData = results.data;
-    // Set update timestamp
-    (function(){
-      const now = new Date();
-      const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-      const str = `Diupdate pada ${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}, pukul 05:00 WITA`;
-      document.getElementById('topbarUpdate').textContent = str;
-    })();
-    allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
-    document.getElementById("topbarTotal").textContent =
-      `${rawData.length.toLocaleString()} record`;
-    fillFilters(); buildTable(); fillPivotFilters(); resolveSpecialKeys(); renderPivot();
+const CACHE_KEY = 'se2026_data';
+const CACHE_TS_KEY = 'se2026_ts';
+const CACHE_MAX_MS = 30 * 60 * 1000; // 30 menit
+
+function initDashboard(data, fromCache, fetchedAt) {
+  rawData = data;
+  const now = new Date(fetchedAt);
+  const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const timeStr = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  const cacheNote = fromCache ? ` · <span style="color:#fbbf24" title="Data dari cache lokal. Klik Refresh Data untuk memuat ulang.">⚡ cache</span>` : '';
+  document.getElementById('topbarUpdate').innerHTML =
+    `Diambil: ${dateStr} pukul ${timeStr} WITA${cacheNote}`;
+  allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
+  document.getElementById('topbarTotal').textContent = `${rawData.length.toLocaleString()} record`;
+  fillFilters(); buildTable(); fillPivotFilters(); resolveSpecialKeys(); renderPivot();
+  const btn = document.getElementById('btnRefreshData');
+  if(btn) btn.disabled = false;
+}
+
+function loadData(forceRefresh) {
+  // Jika data sudah ada di memory dan bukan force-refresh, skip sama sekali
+  if(!forceRefresh && rawData.length > 0) return;
+
+  const btn = document.getElementById('btnRefreshData');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Memuat…'; }
+  document.getElementById('topbarTotal').textContent = 'Memuat data…';
+
+  // Cek cache jika tidak force-refresh
+  if(!forceRefresh){
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      const cachedTs = sessionStorage.getItem(CACHE_TS_KEY);
+      if(cached && cachedTs){
+        const age = Date.now() - parseInt(cachedTs, 10);
+        if(age < CACHE_MAX_MS){
+          const data = JSON.parse(cached);
+          if(data && data.length > 0){
+            initDashboard(data, true, parseInt(cachedTs, 10));
+            if(btn) btn.textContent = '↺ Refresh Data';
+            return;
+          }
+        }
+      }
+    } catch(e){ /* sessionStorage penuh atau error — lanjut fetch */ }
   }
-});
+
+  // Fetch dari Google Sheets
+  Papa.parse(CSV_URL, {
+    download: true, header: true, skipEmptyLines: true,
+    complete(results) {
+      const fetchedAt = Date.now();
+      try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(results.data));
+        sessionStorage.setItem(CACHE_TS_KEY, String(fetchedAt));
+      } catch(e){ /* sessionStorage penuh — skip cache */ }
+      initDashboard(results.data, false, fetchedAt);
+      if(btn) btn.textContent = '↺ Refresh Data';
+    },
+    error() {
+      if(btn){ btn.disabled = false; btn.textContent = '↺ Refresh Data'; }
+      document.getElementById('topbarTotal').textContent = '⚠ Gagal memuat';
+    }
+  });
+}
+
+loadData(false);
 
 /* ══════════════════════════════════════
    HELPERS
@@ -1239,9 +1292,13 @@ function updateUserCards(data){
 
 /* ── DataTable ── */
 function buildTable(){
+  // Jika DataTable sudah ada, cukup update datanya saja — jangan rebuild
+  if($.fn.DataTable.isDataTable('#tblData')){
+    table.clear().rows.add(rawData).draw();
+    return;
+  }
   table=$('#tblData').DataTable({
-    data:rawData, responsive:true, pageLength:25, dom:'Bfrtip',
-    buttons:['excel','csv','pdf','print'],
+    data:rawData, responsive:true, pageLength:25,
     columns:[
       {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
       {data:'Username'},{data:'User'},{data:'Provinsi'},
@@ -2142,11 +2199,285 @@ function exportPivotCSV(){
   const a = document.createElement('a');
   a.href     = url;
   a.download = 'pivot_' + rowField + '_x_' + colField + '.csv';
+  a.target   = '_blank';
+  a.rel      = 'noopener noreferrer';
   a.style.display = 'none';
   document.body.appendChild(a);
-  a.click();
+  a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:false, view:window}));
   document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+async function exportPivotExcel(){
+  const tbl = document.getElementById('pvTable');
+  if(!tbl || !tbl.querySelector('thead')){
+    alert('Tabel pivot belum tersedia. Klik Terapkan terlebih dahulu.');
+    return;
+  }
+
+  // ── Helper: ambil computed background color suatu elemen ──
+  const getBg = el => {
+    // Cek inline style dulu
+    const inlineMatch = (el.getAttribute('style')||'').match(/background(?:-color)?:\s*([^;!]+)/i);
+    if(inlineMatch) return inlineMatch[1].trim();
+    // Fallback ke className-based mapping
+    const cls = el.className || '';
+    if(el.closest('tr.total-row')){
+      if(cls.includes('row-label'))   return '#cbd5e1';
+      if(cls.includes('pencacah-col'))return '#fef08a';
+      if(cls.includes('capaian-col')) return '#dbeafe';
+      if(cls.includes('geo-cap-col')) return '#dcfce7';
+      if(cls.includes('geo-subsls-col'))return '#e7e5e4';
+      return '#e2e8f0';
+    }
+    if(el.closest('tr.subsls-child')){
+      if(cls.includes('row-label'))   return '#e0f2fe';
+      if(cls.includes('geo-cap-col')) return '#ecfdf5';
+      if(cls.includes('geo-subsls-col'))return '#f0f9ff';
+      return '#f0f9ff';
+    }
+    if(cls.includes('row-label'))     return '#f1f5f9';
+    if(cls.includes('total-col'))     return '#f1f5f9';
+    if(cls.includes('pencacah-col'))  return '#fefce8';
+    if(cls.includes('capaian-col'))   return '#eff6ff';
+    if(cls.includes('geo-cap-col'))   return '#f0fdf4';
+    if(cls.includes('geo-parent-col'))return '#f8fafc';
+    if(cls.includes('geo-subsls-col'))return '#fafaf9';
+    // zebra stripe
+    const tr = el.closest('tr');
+    if(tr){
+      const rows = [...tr.parentElement.children];
+      const idx  = rows.indexOf(tr);
+      return (idx % 2 === 0) ? '#ffffff' : '#f8fafc';
+    }
+    return '#ffffff';
+  };
+
+  // ── Helper: ambil font color dari .pv-val inline style atau class ──
+  const getFontColor = td => {
+    const pvVal = td.querySelector('.pv-val');
+    if(pvVal){
+      const m = (pvVal.getAttribute('style')||'').match(/color:\s*([^;]+)/i);
+      if(m) return m[1].trim();
+      if(pvVal.classList.contains('zero')) return '#cbd5e1';
+      return '#0f172a';
+    }
+    // row-label
+    if(td.className.includes('row-label')){
+      if(td.closest('tr.subsls-child')) return '#1e40af';
+      return '#334155';
+    }
+    if(td.className.includes('geo-parent-col')) return '#64748b';
+    if(td.className.includes('geo-subsls-col')) return '#57534e';
+    return '#0f172a';
+  };
+
+  // ── Helper: konversi hex ke argb (ExcelJS pakai ARGB) ──
+  const hex2argb = hex => {
+    const h = hex.replace('#','');
+    if(h.length === 3) return 'FF' + h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    if(h.length === 6) return 'FF' + h.toUpperCase();
+    return 'FF' + h.toUpperCase();
+  };
+
+  // ── Helper: ambil teks bersih ──
+  const cellText = td => {
+    const pvVal = td.querySelector('.pv-val');
+    if(pvVal){
+      const txt = pvVal.textContent.replace(/\s+/g,' ').trim();
+      if(txt === '–' || txt === '') return '';
+      // Lepaskan tanda % di akhir (simpan untuk pengembalian sebagai teks jika perlu)
+      const hasPct = txt.endsWith('%');
+      const raw = hasPct ? txt.slice(0,-1) : txt;
+      // Deteksi format angka:
+      // - Jika ada titik DAN koma → titik = ribuan, koma = desimal (mis: 1.234,5)
+      // - Jika hanya titik → cek: jika tepat 3 digit setelah titik terakhir = ribuan,
+      //   selain itu = desimal biasa (mis: 96.1, 6.8)
+      // - Jika hanya koma → koma = desimal (mis: 6,8)
+      let clean = raw;
+      if(raw.includes('.') && raw.includes(',')){
+        // Format ribuan ID: 1.234,56
+        clean = raw.replace(/\./g,'').replace(',','.');
+      } else if(raw.includes('.') && !raw.includes(',')){
+        // Titik tunggal: periksa apakah ini ribuan (mis: 1.000) atau desimal (mis: 96.1)
+        const parts = raw.split('.');
+        const lastPart = parts[parts.length - 1];
+        if(parts.length === 2 && lastPart.length === 3 && /^\d+$/.test(lastPart) && /^\d+$/.test(parts[0])){
+          // Kemungkinan ribuan: 1.000, 2.500 → hapus titik
+          clean = raw.replace(/\./g,'');
+        }
+        // Jika tidak (96.1, 6.8, 3.0, dll) → biarkan apa adanya (titik sudah sebagai desimal)
+      } else if(!raw.includes('.') && raw.includes(',')){
+        // Koma sebagai desimal: 6,8 → 6.8
+        clean = raw.replace(',','.');
+      }
+      const num = parseFloat(clean);
+      if(!isNaN(num) && /^[\d.,]+$/.test(raw)){
+        // Kembalikan sebagai teks "96.1%" untuk kolom persentase agar Excel tidak salah format
+        if(hasPct) return txt; // simpan sebagai string "96.1%"
+        return num;
+      }
+      return txt;
+    }
+    const clone = td.cloneNode(true);
+    clone.querySelectorAll('i,.sort-icon,.sls-toggle-icon').forEach(el=>el.remove());
+    clone.querySelectorAll('.sls-toggle').forEach(span=>{
+      span.replaceWith(document.createTextNode(span.textContent));
+    });
+    return (clone.innerText||clone.textContent||'').replace(/\s+/g,' ').trim();
+  };
+
+  // ── Border standar ──
+  const thinBorder = {
+    top:    {style:'thin', color:{argb:'FFE2E8F0'}},
+    bottom: {style:'thin', color:{argb:'FFE2E8F0'}},
+    left:   {style:'thin', color:{argb:'FFE2E8F0'}},
+    right:  {style:'thin', color:{argb:'FFE2E8F0'}}
+  };
+  const medBorderL = side => ({...thinBorder, left:{style:'medium', color:{argb:hex2argb(side)}}});
+
+  // ── Buat workbook & worksheet ──
+  const workbook  = new ExcelJS.Workbook();
+  workbook.creator = 'SE2026 Dashboard';
+  workbook.created = new Date();
+
+  const rowField = (document.getElementById('pvRowField')||{}).value || 'pivot';
+  const colField = (document.getElementById('pvColField')||{}).value || 'col';
+  const sheetName = `Pivot_${rowField}_x_${colField}`.replace(/[\\/?*[\]]/g,'_').substring(0,31);
+  const worksheet = workbook.addWorksheet(sheetName, {
+    views: [{ state:'frozen', xSplit:1, ySplit:1 }]
+  });
+
+  // ── Proses HEADER row ──
+  const thEls = [...tbl.querySelectorAll('thead tr th')];
+  const headerTexts = thEls.map(th => {
+    const clone = th.cloneNode(true);
+    clone.querySelectorAll('i,.sort-icon').forEach(el=>el.remove());
+    return (clone.innerText||clone.textContent||'').replace(/\s+/g,' ').trim();
+  });
+
+  const hRow = worksheet.addRow(headerTexts);
+  hRow.height = 32;
+  thEls.forEach((th, ci) => {
+    const cell = hRow.getCell(ci+1);
+    // Warna header dari class
+    let bgHex = '#1e293b'; // default
+    const cls = th.className || '';
+    if(cls.includes('total-col'))      bgHex = '#0f172a';
+    else if(cls.includes('pencacah-col')) bgHex = '#78350f';
+    else if(cls.includes('capaian-col'))  bgHex = '#1d4ed8';
+    else if(cls.includes('geo-cap-col'))  bgHex = '#14532d';
+    else if(cls.includes('geo-parent-col')) bgHex = '#334155';
+    else if(cls.includes('geo-subsls-col')) bgHex = '#44403c';
+    // override inline style jika ada
+    const inlineM = (th.getAttribute('style')||'').match(/background(?:-color)?:\s*([^;!]+)/i);
+    if(inlineM) bgHex = inlineM[1].trim();
+
+    let fgHex = '#e2e8f0';
+    if(cls.includes('pencacah-col'))    fgHex = '#fef08a';
+    else if(cls.includes('capaian-col'))fgHex = '#bfdbfe';
+    else if(cls.includes('geo-cap-col'))fgHex = '#bbf7d0';
+    else if(cls.includes('geo-parent-col')) fgHex = '#cbd5e1';
+    else if(cls.includes('geo-subsls-col')) fgHex = '#d6d3d1';
+    const fgInline = (th.getAttribute('style')||'').match(/(?:^|;)\s*color:\s*([^;!]+)/i);
+    if(fgInline) fgHex = fgInline[1].trim();
+
+    cell.fill   = {type:'pattern', pattern:'solid', fgColor:{argb:hex2argb(bgHex)}};
+    cell.font   = {bold:true, color:{argb:hex2argb(fgHex)}, size:9, name:'Calibri'};
+    cell.border = thinBorder;
+    cell.alignment = {vertical:'middle', horizontal: cls.includes('row-header')?'left':'center', wrapText:true};
+  });
+
+  // ── Proses DATA rows ──
+  const dataRows = [...tbl.querySelectorAll('tbody tr, tfoot tr')].filter(tr =>
+    !(tr.classList.contains('subsls-child') && !tr.classList.contains('visible'))
+  );
+
+  dataRows.forEach(tr => {
+    const tdEls = [...tr.querySelectorAll('td')];
+    const values = tdEls.map(td => cellText(td));
+    const xlRow  = worksheet.addRow(values);
+    xlRow.height = 22;
+
+    const isTotalRow  = tr.classList.contains('total-row');
+    const isChildRow  = tr.classList.contains('subsls-child');
+
+    tdEls.forEach((td, ci) => {
+      const cell = xlRow.getCell(ci+1);
+      const cls  = td.className || '';
+      const bgHex = getBg(td);
+      const fgHex = getFontColor(td);
+
+      cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:hex2argb(bgHex)}};
+      cell.font = {
+        bold: (isTotalRow || cls.includes('row-label') && !isChildRow),
+        italic: cls.includes('geo-parent-col'),
+        color: {argb: hex2argb(fgHex)},
+        size: 9,
+        name: 'Calibri'
+      };
+
+      // Border — kolom pertama dapat left medium biru
+      let border = {...thinBorder};
+      if(cls.includes('row-label')){
+        const lColor = isChildRow ? '#93c5fd' : cls.includes('total-row') ? '#64748b' : '#0d6efd';
+        border = {...thinBorder, left:{style:'medium', color:{argb:hex2argb(lColor)}}};
+      } else if(isTotalRow){
+        border = {...thinBorder, top:{style:'medium', color:{argb:'FF94A3B8'}}};
+      }
+      if(cls.includes('total-col') || cls.includes('pencacah-col') || cls.includes('capaian-col') || cls.includes('geo-cap-col')){
+        border = {...border, left:{style:'medium', color:{argb:hex2argb(
+          cls.includes('pencacah-col') ? '#fde68a' :
+          cls.includes('capaian-col')  ? '#bfdbfe' :
+          cls.includes('geo-cap-col')  ? '#bbf7d0' : '#cbd5e1'
+        )}}};
+      }
+      cell.border = border;
+
+      // Alignment
+      const isLabel = cls.includes('row-label') || cls.includes('geo-parent-col') || cls.includes('geo-subsls-col');
+      cell.alignment = {
+        vertical: 'middle',
+        horizontal: isLabel ? 'left' : 'center',
+        wrapText: false,
+        indent: (isChildRow && cls.includes('row-label')) ? 2 : 0
+      };
+    });
+  });
+
+  // ── Auto column width ──
+  worksheet.columns.forEach((col, ci) => {
+    let max = (headerTexts[ci]||'').length;
+    dataRows.forEach(tr => {
+      const td = tr.querySelectorAll('td')[ci];
+      if(!td) return;
+      const v = cellText(td);
+      const len = v != null ? String(v).length : 0;
+      if(len > max) max = len;
+    });
+    col.width = Math.max(8, Math.min(max + 2, 42));
+  });
+
+  // ── Auto-filter pada header ──
+  worksheet.autoFilter = {
+    from: {row:1, column:1},
+    to:   {row:1, column:headerTexts.length}
+  };
+
+  // ── Download ──
+  const buf = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `pivot_${rowField}_x_${colField}.xlsx`;
+  a.target   = '_blank';
+  a.rel      = 'noopener noreferrer';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.dispatchEvent(new MouseEvent('click', {bubbles:false, cancelable:false, view:window}));
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
 }
 
 /* ══════════════════════════════════════
