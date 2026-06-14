@@ -53,8 +53,8 @@ body {
 .section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 14px;
+  gap: 8px;
+  margin: 0 0 8px;
 }
 .section-header .sh-bar {
   width: 4px; height: 20px;
@@ -89,14 +89,14 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(0,0,0,.12);
 }
-.summary-card .card-body { padding: 14px 16px; }
-.summary-card .sc-label { font-size: 11px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
-.summary-card .sc-val { font-size: 26px; font-weight: 700; line-height: 1; color: #1e293b; }
-.summary-card .sc-pct { font-size: 11px; color: #6c757d; margin-top: 2px; }
+.summary-card .card-body { padding: 9px 12px; }
+.summary-card .sc-label { font-size: 10px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.summary-card .sc-val { font-size: 20px; font-weight: 700; line-height: 1.1; color: #1e293b; }
+.summary-card .sc-pct { font-size: 10px; color: #6c757d; margin-top: 1px; }
 .summary-card .sc-bar {
-  height: 4px;
+  height: 3px;
   border-radius: 2px;
-  margin-top: 10px;
+  margin-top: 6px;
   background: #e9ecef;
   overflow: hidden;
 }
@@ -151,7 +151,7 @@ body {
 .pivot-table-wrap {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 70vh;
+  max-height: 420px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
@@ -462,7 +462,7 @@ body {
 
 /* ── Map ── */
 #mapPanel { border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04); margin-bottom: 22px; }
-#mapContainer { height: 620px; width: 100%; background: #e8edf2; }
+#mapContainer { height: 380px; width: 100%; background: #e8edf2; }
 /* Layer toggle buttons */
 .map-layer-bar {
   background: white;
@@ -719,7 +719,7 @@ body {
     <div class="sh-title">Assignment</div>
     <div class="sh-count" id="cntAssignment"></div>
   </div>
-  <div class="row g-3 mb-4" id="assignmentCards"></div>
+  <div class="row g-2 mb-3" id="assignmentCards"></div>
 
   <!-- User Cards -->
   <div class="section-header">
@@ -727,14 +727,14 @@ body {
     <div class="sh-title">User</div>
     <div class="sh-count" id="cntUser"></div>
   </div>
-  <div class="row g-3 mb-4" id="userCards"></div>
+  <div class="row g-2 mb-3" id="userCards"></div>
 
   <!-- Progres & Capaian Cards -->
   <div class="section-header">
     <div class="sh-bar" style="background:linear-gradient(180deg,#0ea5e9,#22c55e)"></div>
     <div class="sh-title">Progres &amp; Capaian Harian</div>
   </div>
-  <div class="row g-3 mb-4" id="progresCards"></div>
+  <div class="row g-2 mb-3" id="progresCards"></div>
 
   <!-- Pivot Table -->
   <div class="section-header">
@@ -1490,7 +1490,7 @@ function buildTable(){
     return;
   }
   table=$('#tblData').DataTable({
-    data:rawData, responsive:true, pageLength:25,
+    data:rawData, responsive:true, pageLength:10,
     columns:[
       {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
       {data:'Username'},{data:'User'},{data:'Provinsi'},
