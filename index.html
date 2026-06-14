@@ -1021,7 +1021,7 @@ body {
           <tr>
             <th>Assignment</th><th>Nama</th><th>Alamat</th><th>SBR</th>
             <th>Username</th><th>User</th><th>Provinsi</th>
-            <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th>
+            <th>Kabupaten</th><th>Kecamatan</th><th>Desa</th><th>SLS</th><th>SubSLS</th>
             <th>Pencacah Awal</th><th>Pengawas Awal</th>
           </tr>
         </thead>
@@ -1298,7 +1298,7 @@ $.fn.dataTable.ext.search.push(function(s, data){
   const colMap = {
     filterAssignment: 0, filterUsername: 4, filterUser: 5,
     filterKabupaten: 7, filterKecamatan: 8, filterDesa: 9, filterSLS: 10,
-    filterPencacahAwal: 11, filterPengawasAwal: 12
+    filterPencacahAwal: 12, filterPengawasAwal: 13
   };
   return MAIN_IDS.every(id => {
     const sel = MS_SELECTED[id];
@@ -1351,6 +1351,7 @@ function buildTable(){
       {data:'Assignment'},{data:'Nama'},{data:'Alamat'},{data:'SBR'},
       {data:'Username'},{data:'User'},{data:'Provinsi'},
       {data:'Kabupaten'},{data:'Kecamatan'},{data:'Desa'},{data:'SLS'},
+      {data:'SubSLS', defaultContent:''},
       {data:'Pencacah Awal', defaultContent:''},
       {data:'Pengawas Awal', defaultContent:''}
     ]
@@ -2601,6 +2602,7 @@ async function exportDetailExcel(){
       {key:'Kecamatan',  label:'Kecamatan'},
       {key:'Desa',       label:'Desa'},
       {key:'SLS',        label:'SLS'},
+      {key:'SubSLS',     label:'SubSLS'},
       {key:'Pencacah Awal', label:'Pencacah Awal'},
       {key:'Pengawas Awal', label:'Pengawas Awal'}
     ];
