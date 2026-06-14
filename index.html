@@ -124,6 +124,25 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04);
 }
 
+/* ── Scatter plot controls ── */
+.scatter-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.scatter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+}
+.scatter-swap {
+  font-size: 13px;
+  padding: 4px 8px;
+  margin-bottom: 1px;
+}
+
 /* ── Filter controls ── */
 .filter-label {
   font-size: 10px;
@@ -700,14 +719,24 @@ body {
   </div>
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-left:auto">
     <div class="topbar-badge" id="topbarTotal">Memuat data…</div>
-    <button id="btnRefreshData" onclick="loadData(true)"
-      title="Paksa ambil data terbaru dari Google Sheets"
-      style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;
-             color:#fff;font-size:10px;font-weight:600;padding:3px 10px;cursor:pointer;
-             letter-spacing:.04em;opacity:.8;transition:opacity .15s"
-      onmouseover="this.style.opacity=1" onmouseout="this.style.opacity='.8'">
-      ↺ Refresh Data
-    </button>
+    <div style="display:flex;gap:6px">
+      <button id="btnRefreshData" onclick="loadData(true)"
+        title="Paksa ambil data terbaru dari Google Sheets"
+        style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;
+               color:#fff;font-size:10px;font-weight:600;padding:3px 10px;cursor:pointer;
+               letter-spacing:.04em;opacity:.8;transition:opacity .15s"
+        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity='.8'">
+        ↺ Refresh Data
+      </button>
+      <button id="btnSnapshotNow" onclick="sendDailySnapshotIfNeeded(true)"
+        title="Simpan snapshot 5 metrik hari ini ke Histori Harian (overwrite jika sudah ada)"
+        style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;
+               color:#fff;font-size:10px;font-weight:600;padding:3px 10px;cursor:pointer;
+               letter-spacing:.04em;opacity:.8;transition:opacity .15s"
+        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity='.8'">
+        💾 Simpan Snapshot
+      </button>
+    </div>
   </div>
 </div>
 
@@ -818,6 +847,35 @@ body {
 
     <div class="pivot-table-wrap">
       <table class="pivot-table" id="pvTable"></table>
+    </div>
+
+    <!-- Tren Harian -->
+    <div class="section-header" style="margin-top:14px">
+      <div class="sh-bar" style="background:linear-gradient(180deg,#f59e0b,#ef4444)"></div>
+      <div class="sh-title">Tren Harian (Histori)</div>
+      <div class="sh-count" id="cntHistori"></div>
+    </div>
+    <div id="historiEmptyMsg" style="display:none;font-size:12px;color:#6c757d;text-align:center;padding:16px">
+      Belum ada data histori. Data akan otomatis tersimpan setiap hari saat dashboard dibuka.
+    </div>
+    <div id="historiChartsWrap" style="display:none">
+      <div class="row g-2">
+        <div class="col-lg-4">
+          <div style="position:relative;height:260px">
+            <canvas id="trendProgres"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div style="position:relative;height:260px">
+            <canvas id="trendCapaian"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div style="position:relative;height:260px">
+            <canvas id="trendOpen"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1051,6 +1109,159 @@ body {
     </div>
   </div>
 
+  <!-- Scatter Plot Section -->
+  <div class="section-header">
+    <div class="sh-bar" style="background:linear-gradient(180deg,#0dcaf0,#0d6efd)"></div>
+    <div class="sh-title">Pola Capaian (Scatter Plot)</div>
+  </div>
+  <div class="row g-2 mb-3">
+    <!-- Scatter Pencacahan -->
+    <div class="col-lg-6">
+      <div class="panel" style="padding:12px">
+        <div class="scatter-controls">
+          <div class="scatter-field">
+            <label class="filter-label">Sumbu X</label>
+            <select class="form-select form-select-sm" id="scatCacahX" onchange="renderScatterCacah()">
+              <option value="persenOpen">% OPEN/Target</option>
+              <option value="progressCacah" selected>Progres Pencacahan Kemarin</option>
+              <option value="capaianCacah">Capaian Harian Pencacahan</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm scatter-swap" onclick="swapScatterAxis('Cacah')" title="Tukar sumbu X dan Y">⇄</button>
+          <div class="scatter-field">
+            <label class="filter-label">Sumbu Y</label>
+            <select class="form-select form-select-sm" id="scatCacahY" onchange="renderScatterCacah()">
+              <option value="persenOpen" selected>% OPEN/Target</option>
+              <option value="progressCacah">Progres Pencacahan Kemarin</option>
+              <option value="capaianCacah">Capaian Harian Pencacahan</option>
+            </select>
+          </div>
+          <div class="scatter-field" style="min-width:130px">
+            <label class="filter-label">Kecamatan</label>
+            <div class="ms-wrap" id="ms-wrap-scatCacahKec">
+              <div class="ms-trigger" id="ms-trigger-scatCacahKec" onclick="toggleMsDropdown('scatCacahKec')">
+                <span class="ms-trigger-text placeholder" id="ms-text-scatCacahKec">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-scatCacahKec">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatCacahKec',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="msSelectAll('scatCacahKec')">Pilih Semua</button>
+                  <button onclick="msClearAll('scatCacahKec')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-scatCacahKec"></div>
+                <div class="ms-footer"><button onclick="applyMsFilter('scatCacahKec')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="scatter-field" style="min-width:130px">
+            <label class="filter-label">Desa</label>
+            <div class="ms-wrap" id="ms-wrap-scatCacahDesa">
+              <div class="ms-trigger" id="ms-trigger-scatCacahDesa" onclick="toggleMsDropdown('scatCacahDesa')">
+                <span class="ms-trigger-text placeholder" id="ms-text-scatCacahDesa">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-scatCacahDesa">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatCacahDesa',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="msSelectAll('scatCacahDesa')">Pilih Semua</button>
+                  <button onclick="msClearAll('scatCacahDesa')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-scatCacahDesa"></div>
+                <div class="ms-footer"><button onclick="applyMsFilter('scatCacahDesa')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="scatter-field" style="min-width:150px">
+            <label class="filter-label">Pengawas Awal</label>
+            <div class="ms-wrap" id="ms-wrap-scatCacahPengawas">
+              <div class="ms-trigger" id="ms-trigger-scatCacahPengawas" onclick="toggleMsDropdown('scatCacahPengawas')">
+                <span class="ms-trigger-text placeholder" id="ms-text-scatCacahPengawas">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-scatCacahPengawas">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatCacahPengawas',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="msSelectAll('scatCacahPengawas')">Pilih Semua</button>
+                  <button onclick="msClearAll('scatCacahPengawas')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-scatCacahPengawas"></div>
+                <div class="ms-footer"><button onclick="applyMsFilter('scatCacahPengawas')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sh-title" style="margin:8px 0 4px;font-size:12px;color:#0d6efd">📊 Pencacahan — per Username</div>
+        <div style="position:relative;height:260px">
+          <canvas id="scatterCacah"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scatter Pengawasan -->
+    <div class="col-lg-6">
+      <div class="panel" style="padding:12px">
+        <div class="scatter-controls">
+          <div class="scatter-field">
+            <label class="filter-label">Sumbu X</label>
+            <select class="form-select form-select-sm" id="scatRiksaX" onchange="renderScatterRiksa()">
+              <option value="progressRiksa" selected>Progres Pemeriksaan Kemarin</option>
+              <option value="capaianRiksa">Capaian Harian Pengawasan</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm scatter-swap" onclick="swapScatterAxis('Riksa')" title="Tukar sumbu X dan Y">⇄</button>
+          <div class="scatter-field">
+            <label class="filter-label">Sumbu Y</label>
+            <select class="form-select form-select-sm" id="scatRiksaY" onchange="renderScatterRiksa()">
+              <option value="progressRiksa">Progres Pemeriksaan Kemarin</option>
+              <option value="capaianRiksa" selected>Capaian Harian Pengawasan</option>
+            </select>
+          </div>
+          <div class="scatter-field" style="min-width:130px">
+            <label class="filter-label">Kecamatan</label>
+            <div class="ms-wrap" id="ms-wrap-scatRiksaKec">
+              <div class="ms-trigger" id="ms-trigger-scatRiksaKec" onclick="toggleMsDropdown('scatRiksaKec')">
+                <span class="ms-trigger-text placeholder" id="ms-text-scatRiksaKec">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-scatRiksaKec">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatRiksaKec',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="msSelectAll('scatRiksaKec')">Pilih Semua</button>
+                  <button onclick="msClearAll('scatRiksaKec')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-scatRiksaKec"></div>
+                <div class="ms-footer"><button onclick="applyMsFilter('scatRiksaKec')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="scatter-field" style="min-width:130px">
+            <label class="filter-label">Desa</label>
+            <div class="ms-wrap" id="ms-wrap-scatRiksaDesa">
+              <div class="ms-trigger" id="ms-trigger-scatRiksaDesa" onclick="toggleMsDropdown('scatRiksaDesa')">
+                <span class="ms-trigger-text placeholder" id="ms-text-scatRiksaDesa">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-scatRiksaDesa">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatRiksaDesa',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="msSelectAll('scatRiksaDesa')">Pilih Semua</button>
+                  <button onclick="msClearAll('scatRiksaDesa')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-scatRiksaDesa"></div>
+                <div class="ms-footer"><button onclick="applyMsFilter('scatRiksaDesa')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sh-title" style="margin:8px 0 4px;font-size:12px;color:#0d6efd">🔎 Pengawasan — per Username</div>
+        <div style="position:relative;height:260px">
+          <canvas id="scatterRiksa"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /container -->
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -1060,6 +1271,7 @@ body {
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ27Y0FnXR-U2sFBVHtKKspENrnedukpubHql2jJAzs23HSmZrIa6TQHytEqb8jbD-UWo0puQZ-AwSs/pub?output=csv";
 let rawData = [], table, allUsers = [];
@@ -1077,11 +1289,13 @@ function initDashboard(data, fromCache, fetchedAt) {
   const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
   const cacheNote = fromCache ? ` · <span style="color:#fbbf24" title="Data dari cache lokal. Klik Refresh Data untuk memuat ulang.">⚡ cache</span>` : '';
   document.getElementById('topbarUpdate').innerHTML =
-    `Diambil: ${dateStr} pukul 05:00 WITA${cacheNote}`;
+    `Diambil: ${dateStr} pukul ${timeStr} WITA${cacheNote}`;
   allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
   document.getElementById('topbarTotal').textContent = `${rawData.length.toLocaleString()} record`;
   resolveSpecialKeys();
-  fillFilters(); buildTable(); fillPivotFilters(); renderPivot();
+  fillFilters(); buildTable(); fillPivotFilters(); renderPivot(); initScatterPlots();
+  sendDailySnapshotIfNeeded();
+  loadHistoriHarian();
   const btn = document.getElementById('btnRefreshData');
   if(btn) btn.disabled = false;
 }
@@ -1118,6 +1332,24 @@ function loadData(forceRefresh) {
     download: true, header: true, skipEmptyLines: true,
     complete(results) {
       const fetchedAt = Date.now();
+
+      // Debug: cek baris yang field utamanya kosong (kemungkinan "sampah")
+      const junkRows = [];
+      const firstColKey = results.data.length ? Object.keys(results.data[0])[0] : null;
+      results.data.forEach((row, i) => {
+        const firstColVal = (row[firstColKey] || '').toString().trim();
+        if(firstColVal === ''){
+          junkRows.push({ csvRowNumber: i+2, row }); // +2: +1 utk header, +1 utk 1-based
+        }
+      });
+      if(junkRows.length){
+        console.warn(`[DEBUG] Ditemukan ${junkRows.length} baris dengan kolom pertama ("${firstColKey}") kosong (total parsed: ${results.data.length}):`);
+        console.table(junkRows.slice(0, 60).map(j => ({rowNumber: j.csvRowNumber, ...j.row})));
+        if(junkRows.length > 60) console.warn(`...dan ${junkRows.length - 60} baris lainnya.`);
+      } else {
+        console.log(`[DEBUG] Tidak ada baris "sampah" ditemukan. Total parsed: ${results.data.length}`);
+      }
+
       try {
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(results.data));
         sessionStorage.setItem(CACHE_TS_KEY, String(fetchedAt));
@@ -1162,7 +1394,12 @@ const MS_SELECTED = {
   filterDesa: new Set(),
   filterSLS: new Set(),
   filterPencacahAwal: new Set(),
-  filterPengawasAwal: new Set()
+  filterPengawasAwal: new Set(),
+  scatCacahKec: new Set(),
+  scatCacahDesa: new Set(),
+  scatCacahPengawas: new Set(),
+  scatRiksaKec: new Set(),
+  scatRiksaDesa: new Set()
 };
 
 // field mapped to each ms id
@@ -1170,10 +1407,16 @@ const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
   filterDesa:"Desa", filterSLS:"SLS",
-  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal"
+  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal",
+  scatCacahKec:"Kecamatan", scatCacahDesa:"Desa", scatCacahPengawas:"Pengawas Awal",
+  scatRiksaKec:"Kecamatan", scatRiksaDesa:"Desa"
 };
 
-const MAIN_IDS = Object.keys(MAIN_FIELD);
+const SCATTER_IDS = ['scatCacahKec','scatCacahDesa','scatCacahPengawas','scatRiksaKec','scatRiksaDesa'];
+const SCATTER_CACAH_IDS = ['scatCacahKec','scatCacahDesa','scatCacahPengawas'];
+const SCATTER_RIKSA_IDS = ['scatRiksaKec','scatRiksaDesa'];
+const MAIN_IDS = Object.keys(MAIN_FIELD).filter(id => !SCATTER_IDS.includes(id));
+
 
 // Get rows filtered by all ms filters EXCEPT excludeId
 function getMainFiltered(excludeId){
@@ -1184,11 +1427,23 @@ function getMainFiltered(excludeId){
   }));
 }
 
+// Get rows filtered by scatter group filters (cascade within its own group) EXCEPT excludeId
+function getScatterFiltered(groupIds, excludeId){
+  return rawData.filter(r => groupIds.every(id => {
+    if(id === excludeId) return true;
+    const sel = MS_SELECTED[id];
+    return sel.size === 0 || sel.has(r[MAIN_FIELD[id]]);
+  }));
+}
+
 // Build the checkbox list for one ms dropdown
 function buildMsList(id){
   const listEl = document.getElementById('ms-list-' + id);
   const field   = MAIN_FIELD[id];
-  const subset  = getMainFiltered(id);
+  let subset;
+  if(SCATTER_CACAH_IDS.includes(id)) subset = getScatterFiltered(SCATTER_CACAH_IDS, id);
+  else if(SCATTER_RIKSA_IDS.includes(id)) subset = getScatterFiltered(SCATTER_RIKSA_IDS, id);
+  else subset = getMainFiltered(id);
   const vals    = [...new Set(subset.map(r => r[field]).filter(Boolean))].sort();
   const sel     = MS_SELECTED[id];
 
@@ -1267,10 +1522,22 @@ function updateMsTrigger(id){
   }
 }
 
+const ALL_MS_IDS = [...MAIN_IDS, ...SCATTER_IDS];
+
 // Apply filter (close dropdown, cascade rebuild, redraw table)
 function applyMsFilter(id){
   closeMsDropdown(id);
   updateMsTrigger(id);
+  if(SCATTER_CACAH_IDS.includes(id)){
+    SCATTER_CACAH_IDS.forEach(otherId => { if(otherId !== id) buildMsList(otherId); });
+    if(typeof renderScatterCacah === 'function') renderScatterCacah();
+    return;
+  }
+  if(SCATTER_RIKSA_IDS.includes(id)){
+    SCATTER_RIKSA_IDS.forEach(otherId => { if(otherId !== id) buildMsList(otherId); });
+    if(typeof renderScatterRiksa === 'function') renderScatterRiksa();
+    return;
+  }
   MAIN_IDS.forEach(otherId => {
     if(otherId !== id) buildMsList(otherId);
   });
@@ -1282,7 +1549,7 @@ function toggleMsDropdown(id){
   const dropdown = document.getElementById('ms-dropdown-' + id);
   const trigger  = document.getElementById('ms-trigger-' + id);
   const isOpen   = dropdown.classList.contains('open');
-  MAIN_IDS.forEach(i => closeMsDropdown(i));
+  ALL_MS_IDS.forEach(i => closeMsDropdown(i));
   if(!isOpen){
     buildMsList(id);
     dropdown.classList.add('open');
@@ -1297,7 +1564,7 @@ function closeMsDropdown(id){
 }
 
 document.addEventListener('click', function(e){
-  if(!e.target.closest('.ms-wrap')) MAIN_IDS.forEach(id => closeMsDropdown(id));
+  if(!e.target.closest('.ms-wrap')) ALL_MS_IDS.forEach(id => closeMsDropdown(id));
 });
 
 function resetMainFilters(){
@@ -1462,6 +1729,496 @@ function updateProgresCards(data){
     "#8b5cf6"
   ));
 }
+
+/* ══════════════════════════════════════
+   HISTORI HARIAN — Snapshot 5 metrik ke Google Sheets
+══════════════════════════════════════ */
+
+// Hitung 5 metrik agregat (sama seperti card "Progres & Capaian Harian" + Total %OPEN/Target)
+// berdasarkan SELURUH rawData (tidak terpengaruh filter tabel)
+function computeOverallMetrics(){
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
+  let sumCacah = 0, sumRiksa = 0;
+  if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
+    rawData.forEach(r=>{
+      if(PROGRESS_CACAH_KEY){
+        const v = parseFloat(String(r[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) sumCacah += v;
+      }
+      if(PROGRESS_RIKSA_KEY){
+        const v = parseFloat(String(r[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) sumRiksa += v;
+      }
+    });
+  }
+
+  const pencacahCount = {};
+  if(PENCACAH_KEY){
+    rawData.forEach(row=>{
+      const pencacah = row[PENCACAH_KEY]||'';
+      if(pencacah) pencacahCount[pencacah] = (pencacahCount[pencacah]||0) + 1;
+    });
+  }
+
+  const usernameCount = {};
+  const usernames = new Set();
+  rawData.forEach(row=>{
+    const uname = row.Username || '';
+    if(!uname) return;
+    usernames.add(uname);
+    const asgn = row.Assignment || '(Kosong)';
+    if(!usernameCount[uname]) usernameCount[uname] = {};
+    usernameCount[uname][asgn] = (usernameCount[uname][asgn]||0) + 1;
+  });
+
+  const allAsgnKeys = new Set();
+  rawData.forEach(row=>{ if(row.Assignment) allAsgnKeys.add(row.Assignment); });
+  const openColKey = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
+  const apvPgwKey  = [...allAsgnKeys].find(k=>/approved.+pengawas/i.test(k));
+  const rejPgwKey  = [...allAsgnKeys].find(k=>/rejected.+pengawas/i.test(k));
+  const revPgwKey  = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
+
+  let totalCapaianCacah = 0, nCacah = 0;
+  let totalCapaianRiksa = 0, nRiksa = 0;
+  let totalOpen = 0, pencacahGrand = 0;
+  usernames.forEach(uname=>{
+    const counts = usernameCount[uname] || {};
+    const target = pencacahCount[uname] || 0;
+    const openV  = openColKey ? (counts[openColKey] || 0) : 0;
+
+    if(target > 0){
+      pencacahGrand += target;
+      totalOpen += openV;
+      const capaian = (target - openV) / hariKerja;
+      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
+    }
+
+    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
+    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
+    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
+    const total3 = apvV + rejV + revV;
+    if(total3 > 0){
+      const capaian = total3 / hariKerja;
+      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
+    }
+  });
+
+  const avgCacah = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
+  const avgRiksa = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
+  const pctOpen  = pencacahGrand > 0 ? (totalOpen / pencacahGrand) * 100 : 0;
+
+  return {
+    progresPencacahanKemarin: sumCacah,
+    progresPemeriksaanKemarin: sumRiksa,
+    rataCapaianPencacahan: avgCacah,
+    rataCapaianPemeriksaan: avgRiksa,
+    totalPersenOpen: pctOpen
+  };
+}
+
+const HISTORI_API_URL = 'https://script.google.com/macros/s/AKfycbz_ShExxa_IMpf4EDFFQ2Z51iTAThidTR_HxqEqnlm2TTnBuLln7BQOBB64XZsuQMWq/exec';
+const HISTORI_FLAG_KEY = 'se2026_histori_sent_date';
+
+function todayDateStr(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Kirim snapshot hari ini (sekali per hari otomatis, ditandai via sessionStorage).
+// Jika forceManual=true (tombol "Simpan Snapshot"), selalu kirim & overwrite,
+// terlepas dari status flag.
+function sendDailySnapshotIfNeeded(forceManual){
+  if(!rawData.length) return;
+  const today = todayDateStr();
+  const btn = document.getElementById('btnSnapshotNow');
+
+  if(!forceManual){
+    let alreadySent = false;
+    try { alreadySent = sessionStorage.getItem(HISTORI_FLAG_KEY) === today; } catch(e){}
+    if(alreadySent) return;
+  }
+
+  const m = computeOverallMetrics();
+  const payload = {
+    tanggal: today,
+    progresPencacahanKemarin: m.progresPencacahanKemarin,
+    progresPemeriksaanKemarin: m.progresPemeriksaanKemarin,
+    rataCapaianPencacahan: m.rataCapaianPencacahan,
+    rataCapaianPemeriksaan: m.rataCapaianPemeriksaan,
+    totalPersenOpen: m.totalPersenOpen
+  };
+
+  if(btn && forceManual){
+    btn.disabled = true;
+    btn.dataset.origText = btn.textContent;
+    btn.textContent = '⏳ Menyimpan…';
+  }
+
+  fetch(HISTORI_API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'}, // hindari CORS preflight
+    body: JSON.stringify(payload)
+  }).then(()=>{
+    try { sessionStorage.setItem(HISTORI_FLAG_KEY, today); } catch(e){}
+    if(btn && forceManual){
+      btn.textContent = '✅ Tersimpan';
+      setTimeout(()=>{ btn.textContent = btn.dataset.origText; btn.disabled = false; }, 2000);
+    }
+    setTimeout(loadHistoriHarian, 800); // beri waktu Apps Script menulis ke sheet
+  }).catch(err=>{
+    console.warn('Gagal mengirim snapshot histori harian:', err);
+    if(btn && forceManual){
+      btn.textContent = '⚠ Gagal';
+      setTimeout(()=>{ btn.textContent = btn.dataset.origText; btn.disabled = false; }, 2000);
+    }
+  });
+}
+
+
+/* ══════════════════════════════════════
+   SCATTER PLOT — Metrik per Username
+══════════════════════════════════════ */
+let scatterCacahChart = null;
+let scatterRiksaChart = null;
+
+const SCATTER_COLORS = [
+  '#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6',
+  '#06b6d4','#ec4899','#84cc16','#f97316','#6366f1',
+  '#14b8a6','#d946ef','#eab308','#0ea5e9','#a855f7',
+  '#10b981','#f43f5e','#64748b','#7c3aed','#0891b2'
+];
+
+// Hitung 5 metrik per Username: persenOpen, progressCacah, progressRiksa, capaianCacah, capaianRiksa
+// beserta info Kecamatan & Desa (diambil dari record pertama username tersebut)
+function computeUsernameMetrics(){
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
+  // Target per Pencacah Awal (dari seluruh rawData)
+  const pencacahCount = {};
+  if(PENCACAH_KEY){
+    rawData.forEach(row=>{
+      const pencacah = row[PENCACAH_KEY]||'';
+      if(pencacah) pencacahCount[pencacah] = (pencacahCount[pencacah]||0) + 1;
+    });
+  }
+
+  // Group rawData per Username
+  const usernameCount = {};   // {username: {assignmentStatus: count}}
+  const usernameInfo  = {};   // {username: {kecamatan, desa}}
+  const usernames = new Set();
+  rawData.forEach(row=>{
+    const uname = row.Username || '';
+    if(!uname) return;
+    usernames.add(uname);
+    const asgn = row.Assignment || '(Kosong)';
+    if(!usernameCount[uname]) usernameCount[uname] = {};
+    usernameCount[uname][asgn] = (usernameCount[uname][asgn]||0) + 1;
+    if(!usernameInfo[uname]){
+      usernameInfo[uname] = {
+        kecamatan: row.Kecamatan || '(Kosong)',
+        desa: row.Desa || '(Kosong)',
+        pengawasAwal: row['Pengawas Awal'] || '(Kosong)'
+      };
+    }
+    if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
+      if(!usernameInfo[uname]._prog) usernameInfo[uname]._prog = {cacah:0, riksa:0};
+      if(PROGRESS_CACAH_KEY){
+        const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) usernameInfo[uname]._prog.cacah += v;
+      }
+      if(PROGRESS_RIKSA_KEY){
+        const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) usernameInfo[uname]._prog.riksa += v;
+      }
+    }
+  });
+
+  const allAsgnKeys = new Set();
+  rawData.forEach(row=>{ if(row.Assignment) allAsgnKeys.add(row.Assignment); });
+  const openColKey = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
+  const apvPgwKey  = [...allAsgnKeys].find(k=>/approved.+pengawas/i.test(k));
+  const rejPgwKey  = [...allAsgnKeys].find(k=>/rejected.+pengawas/i.test(k));
+  const revPgwKey  = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
+
+  const result = [];
+  usernames.forEach(uname=>{
+    const counts = usernameCount[uname] || {};
+    const info   = usernameInfo[uname] || {};
+    const target = pencacahCount[uname] || 0;
+    const openV  = openColKey ? (counts[openColKey] || 0) : 0;
+
+    const persenOpen = target > 0 ? (openV / target) * 100 : null;
+    const capaianCacah = target > 0 ? (target - openV) / hariKerja : null;
+
+    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
+    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
+    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
+    const total3 = apvV + rejV + revV;
+    const capaianRiksa = total3 > 0 ? total3 / hariKerja : null;
+
+    const progressCacah = (info._prog) ? info._prog.cacah : null;
+    const progressRiksa = (info._prog) ? info._prog.riksa : null;
+
+    result.push({
+      username: uname,
+      kecamatan: info.kecamatan || '(Kosong)',
+      desa: info.desa || '(Kosong)',
+      pengawasAwal: info.pengawasAwal || '(Kosong)',
+      persenOpen,
+      progressCacah,
+      progressRiksa,
+      capaianCacah,
+      capaianRiksa
+    });
+  });
+  return result;
+}
+
+const SCATTER_METRIC_LABELS = {
+  persenOpen:     '% OPEN/Target',
+  progressCacah:  'Progres Pencacahan Kemarin',
+  progressRiksa:  'Progres Pemeriksaan Kemarin',
+  capaianCacah:   'Capaian Harian Pencacahan',
+  capaianRiksa:   'Capaian Harian Pengawasan'
+};
+
+// Tukar pilihan sumbu X dan Y
+function swapScatterAxis(suffix){
+  const xEl = document.getElementById('scat' + suffix + 'X');
+  const yEl = document.getElementById('scat' + suffix + 'Y');
+  const tmp = xEl.value;
+  xEl.value = yEl.value;
+  yEl.value = tmp;
+  if(suffix === 'Cacah') renderScatterCacah();
+  else renderScatterRiksa();
+}
+
+// Tentukan filter & mode pewarnaan berdasarkan kombinasi filter dependen yang dipilih
+// Aturan pewarnaan (semakin spesifik filter, semakin detail grouping warna):
+// - Desa dipilih tepat 1   → warna per Username
+// - Kecamatan dipilih tepat 1 (Desa tidak / >1) → warna per Desa
+// - selain itu             → warna per Kecamatan
+function getScatterGrouping(metrics, kecSet, desaSet, extraSet, extraField){
+  let filtered = metrics;
+  if(kecSet && kecSet.size > 0)   filtered = filtered.filter(m => kecSet.has(m.kecamatan));
+  if(desaSet && desaSet.size > 0) filtered = filtered.filter(m => desaSet.has(m.desa));
+  if(extraSet && extraField && extraSet.size > 0) filtered = filtered.filter(m => extraSet.has(m[extraField]));
+
+  let groupField = 'kecamatan';
+  if(desaSet && desaSet.size === 1) groupField = 'username';
+  else if(kecSet && kecSet.size === 1) groupField = 'desa';
+
+  return { filtered, groupField };
+}
+
+function buildScatterDatasets(metrics, xKey, yKey, groupField){
+  const groups = {};
+  metrics.forEach(m=>{
+    const xv = m[xKey], yv = m[yKey];
+    if(xv === null || yv === null || isNaN(xv) || isNaN(yv)) return;
+    const g = m[groupField] || '(Kosong)';
+    if(!groups[g]) groups[g] = [];
+    groups[g].push({x:xv, y:yv, label:m.username});
+  });
+  const groupNames = Object.keys(groups).sort();
+  return groupNames.map((g, i) => ({
+    label: g,
+    data: groups[g],
+    backgroundColor: SCATTER_COLORS[i % SCATTER_COLORS.length],
+    borderColor: SCATTER_COLORS[i % SCATTER_COLORS.length],
+    pointRadius: 5,
+    pointHoverRadius: 7
+  }));
+}
+
+function scatterChartOptions(xLabel, yLabel, groupLabel){
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { boxWidth: 10, font: {size: 10} },
+        title: { display: true, text: groupLabel, font: {size: 10, weight: 'bold'} }
+      },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.raw.label}: (${ctx.raw.x.toLocaleString(undefined,{maximumFractionDigits:1})}, ${ctx.raw.y.toLocaleString(undefined,{maximumFractionDigits:1})})`
+        }
+      }
+    },
+    scales: {
+      x: { title: { display:true, text:xLabel, font:{size:11} } },
+      y: { title: { display:true, text:yLabel, font:{size:11} } }
+    }
+  };
+}
+
+function renderScatterCacah(){
+  const canvas = document.getElementById('scatterCacah');
+  if(!canvas || typeof Chart === 'undefined' || !rawData.length) return;
+  const xKey = document.getElementById('scatCacahX').value;
+  const yKey = document.getElementById('scatCacahY').value;
+  const metrics = computeUsernameMetrics();
+  const { filtered, groupField } = getScatterGrouping(
+    metrics,
+    MS_SELECTED.scatCacahKec,
+    MS_SELECTED.scatCacahDesa,
+    MS_SELECTED.scatCacahPengawas,
+    'pengawasAwal'
+  );
+  const datasets = buildScatterDatasets(filtered, xKey, yKey, groupField);
+  const groupLabel = groupField === 'username' ? 'Username' : (groupField === 'desa' ? 'Desa' : 'Kecamatan');
+
+  if(scatterCacahChart) scatterCacahChart.destroy();
+  scatterCacahChart = new Chart(canvas.getContext('2d'), {
+    type: 'scatter',
+    data: { datasets },
+    options: scatterChartOptions(SCATTER_METRIC_LABELS[xKey], SCATTER_METRIC_LABELS[yKey], groupLabel)
+  });
+}
+
+function renderScatterRiksa(){
+  const canvas = document.getElementById('scatterRiksa');
+  if(!canvas || typeof Chart === 'undefined' || !rawData.length) return;
+  const xKey = document.getElementById('scatRiksaX').value;
+  const yKey = document.getElementById('scatRiksaY').value;
+  const metrics = computeUsernameMetrics();
+  const { filtered, groupField } = getScatterGrouping(
+    metrics,
+    MS_SELECTED.scatRiksaKec,
+    MS_SELECTED.scatRiksaDesa,
+    null,
+    null
+  );
+  const datasets = buildScatterDatasets(filtered, xKey, yKey, groupField);
+  const groupLabel = groupField === 'username' ? 'Username' : (groupField === 'desa' ? 'Desa' : 'Kecamatan');
+
+  if(scatterRiksaChart) scatterRiksaChart.destroy();
+  scatterRiksaChart = new Chart(canvas.getContext('2d'), {
+    type: 'scatter',
+    data: { datasets },
+    options: scatterChartOptions(SCATTER_METRIC_LABELS[xKey], SCATTER_METRIC_LABELS[yKey], groupLabel)
+  });
+}
+
+function initScatterPlots(){
+  SCATTER_CACAH_IDS.forEach(id => buildMsList(id));
+  SCATTER_RIKSA_IDS.forEach(id => buildMsList(id));
+  renderScatterCacah();
+  renderScatterRiksa();
+}
+
+/* ══════════════════════════════════════
+   TREN HARIAN — Histori dari Google Sheets
+══════════════════════════════════════ */
+let trendProgresChart = null, trendCapaianChart = null, trendOpenChart = null;
+
+function loadHistoriHarian(){
+  if(typeof Chart === 'undefined') return;
+  fetch(HISTORI_API_URL)
+    .then(r => r.json())
+    .then(res => {
+      if(!res.ok || !Array.isArray(res.data) || res.data.length === 0){
+        document.getElementById('historiEmptyMsg').style.display = 'block';
+        document.getElementById('historiChartsWrap').style.display = 'none';
+        document.getElementById('cntHistori').textContent = '';
+        return;
+      }
+      const data = res.data
+        .filter(d => d.tanggal)
+        .sort((a,b) => a.tanggal.localeCompare(b.tanggal));
+
+      document.getElementById('historiEmptyMsg').style.display = 'none';
+      document.getElementById('historiChartsWrap').style.display = 'block';
+      document.getElementById('cntHistori').textContent = `${data.length} hari`;
+
+      const labels = data.map(d => {
+        const dt = new Date(d.tanggal + 'T00:00:00');
+        return dt.toLocaleDateString('id-ID', {day:'2-digit', month:'short'});
+      });
+
+      // Tambahkan 7 hari ke depan dari tanggal terakhir (tanpa data, sebagai ruang kosong di sumbu X)
+      const lastDate = new Date(data[data.length-1].tanggal + 'T00:00:00');
+      const FUTURE_DAYS = 7;
+      for(let i = 1; i <= FUTURE_DAYS; i++){
+        const futureDate = new Date(lastDate);
+        futureDate.setDate(futureDate.getDate() + i);
+        labels.push(futureDate.toLocaleDateString('id-ID', {day:'2-digit', month:'short'}));
+      }
+      const padNulls = arr => arr.concat(Array(FUTURE_DAYS).fill(null));
+
+      renderTrendChart('trendProgres', trendProgresChart, c => trendProgresChart = c, labels, [
+        { label:'Progres Pencacahan Kemarin', data: padNulls(data.map(d=>numOrNull(d.progresPencacahanKemarin))), color:'#3b82f6' },
+        { label:'Progres Pemeriksaan Kemarin', data: padNulls(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#22c55e' }
+      ], 'Progres Kemarin');
+
+      renderTrendChart('trendCapaian', trendCapaianChart, c => trendCapaianChart = c, labels, [
+        { label:'Rata-rata Capaian Pencacahan', data: padNulls(data.map(d=>numOrNull(d.rataCapaianPencacahan))), color:'#f59e0b' },
+        { label:'Rata-rata Capaian Pemeriksaan', data: padNulls(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))), color:'#8b5cf6' }
+      ], 'Rata-rata Capaian Harian');
+
+      renderTrendChart('trendOpen', trendOpenChart, c => trendOpenChart = c, labels, [
+        { label:'Total % OPEN/Target', data: padNulls(data.map(d=>numOrNull(d.totalPersenOpen))), color:'#ef4444' }
+      ], 'Total % OPEN/Target');
+    })
+    .catch(err=>{
+      console.warn('Gagal memuat histori harian:', err);
+      document.getElementById('historiEmptyMsg').style.display = 'block';
+      document.getElementById('historiEmptyMsg').textContent = 'Gagal memuat data histori. Coba refresh halaman.';
+      document.getElementById('historiChartsWrap').style.display = 'none';
+    });
+}
+
+function numOrNull(v){
+  if(v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+}
+
+function renderTrendChart(canvasId, existingChart, setChart, labels, series, title){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  if(existingChart) existingChart.destroy();
+  const chart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: series.map(s => ({
+        label: s.label,
+        data: s.data,
+        borderColor: s.color,
+        backgroundColor: s.color + '33',
+        tension: 0.25,
+        spanGaps: true,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: { display:true, text:title, font:{size:12, weight:'bold'} },
+        legend: { display: series.length > 1, position:'bottom', labels:{boxWidth:10, font:{size:10}} }
+      },
+      scales: {
+        x: { ticks:{font:{size:10}} },
+        y: { ticks:{font:{size:10}}, beginAtZero:true }
+      }
+    }
+  });
+  setChart(chart);
+}
+
 function updateAssignmentCards(data){
   const el=document.getElementById("assignmentCards"), total=data.length, s={};
   data.forEach(r=>{ const k=r.Assignment||"Tidak Ada"; s[k]=(s[k]||0)+1; });
@@ -2986,10 +3743,12 @@ function updateMap(filteredRows){
     const statByAssign = {};
     let validPoints = 0;
 
+    // Hitung sekali saja (bukan per-row) untuk performa pada dataset besar
+    const _keys = filteredRows.length ? Object.keys(filteredRows[0]) : [];
+    const _lonKey = _keys.find(k=>/^(lon|longitude|long|bujur)$/i.test(k)) || _keys[15];
+    const _latKey = _keys.find(k=>/^(lat|latitude|lintang)$/i.test(k)) || _keys[16];
+
     filteredRows.forEach(row => {
-        const _keys = Object.keys(row);
-        const _lonKey = _keys.find(k=>/^(lon|longitude|long|bujur)$/i.test(k)) || _keys[15];
-        const _latKey = _keys.find(k=>/^(lat|latitude|lintang)$/i.test(k)) || _keys[16];
         const lon = parseFloat(row[_lonKey]);
         const lat = parseFloat(row[_latKey]);
         if(isNaN(lat)||isNaN(lon)||lat===0||lon===0) return;
