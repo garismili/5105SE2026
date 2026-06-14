@@ -148,7 +148,13 @@ body {
 }
 
 /* ── Pivot table ── */
-.pivot-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
+.pivot-table-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 70vh;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
 .pivot-table {
   border-collapse: collapse;
   width: 100%;
@@ -170,7 +176,14 @@ body {
   top: 0;
   z-index: 2;
 }
-.pivot-table thead tr th.row-header { text-align: left; min-width: 150px; }
+.pivot-table thead tr th.row-header {
+  text-align: left;
+  min-width: 150px;
+  position: sticky;
+  left: 0;
+  top: 0;
+  z-index: 3;
+}
 .pivot-table tbody tr:nth-child(odd)  td { background: #fff; }
 .pivot-table tbody tr:nth-child(even) td { background: #f8fafc; }
 .pivot-table tbody tr:hover td { background: #eff6ff !important; }
@@ -715,6 +728,13 @@ body {
     <div class="sh-count" id="cntUser"></div>
   </div>
   <div class="row g-3 mb-4" id="userCards"></div>
+
+  <!-- Progres & Capaian Cards -->
+  <div class="section-header">
+    <div class="sh-bar" style="background:linear-gradient(180deg,#0ea5e9,#22c55e)"></div>
+    <div class="sh-title">Progres &amp; Capaian Harian</div>
+  </div>
+  <div class="row g-3 mb-4" id="progresCards"></div>
 
   <!-- Pivot Table -->
   <div class="section-header">
@@ -1318,6 +1338,130 @@ function makeCard(label, jumlah, persen){
     </div></div>
   </div>`;
 }
+// Kartu statistik tanpa progress bar (untuk Progres Kemarin & Rata-rata Capaian)
+function makeStatCard(label, valDisplay, subText, color){
+  return `<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+    <div class="card summary-card" style="border-left:4px solid ${color}"><div class="card-body">
+      <div class="sc-label">${label}</div>
+      <div class="sc-val" style="color:${color}">${valDisplay}</div>
+      <div class="sc-pct">${subText}</div>
+    </div></div>
+  </div>`;
+}
+function updateProgresCards(data){
+  const el = document.getElementById("progresCards");
+  if(!el) return;
+  el.innerHTML = "";
+
+  // Card 1 & 2: SUM dari "Progres Pencacahan Kemarin" & "Progres Pemeriksaan Kemarin"
+  let sumCacah = 0, sumRiksa = 0;
+  if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
+    data.forEach(r=>{
+      if(PROGRESS_CACAH_KEY){
+        const v = parseFloat(String(r[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) sumCacah += v;
+      }
+      if(PROGRESS_RIKSA_KEY){
+        const v = parseFloat(String(r[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) sumRiksa += v;
+      }
+    });
+  }
+
+  // Card 3 & 4: rata-rata Capaian Harian Pencacahan & Pengawasan
+  // Mengikuti perhitungan yang sama seperti pivot Username × Assignment:
+  //   Capaian Pencacahan = (Target Pencacah - OPEN) / hariKerja, dirata-rata per username
+  //   Capaian Pengawasan = (Approved+Rejected+Revoked by Pengawas) / hariKerja, dirata-rata per username
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
+  // Hitung target per Pencacah Awal (dari seluruh rawData, sesuai pivot)
+  const pencacahCount = {};
+  if(PENCACAH_KEY){
+    rawData.forEach(row=>{
+      const pencacah = row[PENCACAH_KEY]||'';
+      if(pencacah) pencacahCount[pencacah] = (pencacahCount[pencacah]||0) + 1;
+    });
+  }
+
+  // Group `data` (sesuai filter aktif) per Username, hitung count per Assignment status
+  const usernameCount = {}; // {username: {assignmentStatus: count}}
+  const usernames = new Set();
+  data.forEach(row=>{
+    const uname = row.Username || '';
+    if(!uname) return;
+    usernames.add(uname);
+    const asgn = row.Assignment || '(Kosong)';
+    if(!usernameCount[uname]) usernameCount[uname] = {};
+    usernameCount[uname][asgn] = (usernameCount[uname][asgn]||0) + 1;
+  });
+
+  // Cari nama status Assignment untuk OPEN dan Approved/Rejected/Revoked by Pengawas
+  const allAsgnKeys = new Set();
+  data.forEach(row=>{ if(row.Assignment) allAsgnKeys.add(row.Assignment); });
+  const openColKey = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
+  const apvPgwKey  = [...allAsgnKeys].find(k=>/approved.+pengawas/i.test(k));
+  const rejPgwKey  = [...allAsgnKeys].find(k=>/rejected.+pengawas/i.test(k));
+  const revPgwKey  = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
+
+  let totalCapaianCacah = 0, nCacah = 0;
+  let totalCapaianRiksa = 0, nRiksa = 0;
+  usernames.forEach(uname=>{
+    const counts = usernameCount[uname] || {};
+    // Capaian Pencacahan
+    const target = pencacahCount[uname] || 0;
+    if(target > 0){
+      const openV   = openColKey ? (counts[openColKey] || 0) : 0;
+      const selesai = target - openV;
+      const capaian = selesai / hariKerja;
+      if(!isNaN(capaian) && isFinite(capaian)){
+        totalCapaianCacah += capaian;
+        nCacah++;
+      }
+    }
+    // Capaian Pengawasan
+    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
+    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
+    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
+    const total3 = apvV + rejV + revV;
+    if(total3 > 0){
+      const capaian = total3 / hariKerja;
+      if(!isNaN(capaian) && isFinite(capaian)){
+        totalCapaianRiksa += capaian;
+        nRiksa++;
+      }
+    }
+  });
+
+  const avgCacah = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
+  const avgRiksa = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
+
+  el.insertAdjacentHTML("beforeend", makeStatCard(
+    "Progres Pencacahan Kemarin",
+    sumCacah.toLocaleString(undefined,{maximumFractionDigits:1}),
+    PROGRESS_CACAH_KEY ? "total kemarin" : "kolom tidak ditemukan",
+    "#3b82f6"
+  ));
+  el.insertAdjacentHTML("beforeend", makeStatCard(
+    "Progres Pemeriksaan Kemarin",
+    sumRiksa.toLocaleString(undefined,{maximumFractionDigits:1}),
+    PROGRESS_RIKSA_KEY ? "total kemarin" : "kolom tidak ditemukan",
+    "#22c55e"
+  ));
+  el.insertAdjacentHTML("beforeend", makeStatCard(
+    "Rata-rata Capaian Pencacahan",
+    avgCacah.toLocaleString(undefined,{maximumFractionDigits:1}),
+    nCacah > 0 ? `rata-rata ${nCacah.toLocaleString()} username` : "tidak ada data",
+    "#f59e0b"
+  ));
+  el.insertAdjacentHTML("beforeend", makeStatCard(
+    "Rata-rata Capaian Pemeriksaan",
+    avgRiksa.toLocaleString(undefined,{maximumFractionDigits:1}),
+    nRiksa > 0 ? `rata-rata ${nRiksa.toLocaleString()} username` : "tidak ada data",
+    "#8b5cf6"
+  ));
+}
 function updateAssignmentCards(data){
   const el=document.getElementById("assignmentCards"), total=data.length, s={};
   data.forEach(r=>{ const k=r.Assignment||"Tidak Ada"; s[k]=(s[k]||0)+1; });
@@ -1358,7 +1502,7 @@ function buildTable(){
   });
   table.on('draw',function(){
     const f=table.rows({search:'applied'}).data().toArray();
-    updateAssignmentCards(f); updateUserCards(f);
+    updateAssignmentCards(f); updateUserCards(f); updateProgresCards(f);
     document.getElementById("cntDetail").textContent=`${f.length.toLocaleString()} record`;
     updateMap(f);
     bindRowClick();
@@ -1383,7 +1527,7 @@ function buildTable(){
       }, 400);
     });
   }
-  updateAssignmentCards(rawData); updateUserCards(rawData);
+  updateAssignmentCards(rawData); updateUserCards(rawData); updateProgresCards(rawData);
   document.getElementById("cntDetail").textContent=`${rawData.length.toLocaleString()} record`;
   initMap(); updateMap(rawData);
 }
