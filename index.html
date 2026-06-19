@@ -124,24 +124,6 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.04);
 }
 
-/* ── Scatter plot controls ── */
-.scatter-controls {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.scatter-field {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 150px;
-}
-.scatter-swap {
-  font-size: 13px;
-  padding: 4px 8px;
-  margin-bottom: 1px;
-}
 
 /* ── Filter controls ── */
 .filter-label {
@@ -1109,159 +1091,6 @@ body {
     </div>
   </div>
 
-  <!-- Scatter Plot Section -->
-  <div class="section-header">
-    <div class="sh-bar" style="background:linear-gradient(180deg,#0dcaf0,#0d6efd)"></div>
-    <div class="sh-title">Pola Capaian (Scatter Plot)</div>
-  </div>
-  <div class="row g-2 mb-3">
-    <!-- Scatter Pencacahan -->
-    <div class="col-lg-6">
-      <div class="panel" style="padding:12px">
-        <div class="scatter-controls">
-          <div class="scatter-field">
-            <label class="filter-label">Sumbu X</label>
-            <select class="form-select form-select-sm" id="scatCacahX" onchange="renderScatterCacah()">
-              <option value="persenOpen">% OPEN/Target</option>
-              <option value="progressCacah" selected>Progres Pencacahan Kemarin</option>
-              <option value="capaianCacah">Capaian Harian Pencacahan</option>
-            </select>
-          </div>
-          <button type="button" class="btn btn-outline-secondary btn-sm scatter-swap" onclick="swapScatterAxis('Cacah')" title="Tukar sumbu X dan Y">⇄</button>
-          <div class="scatter-field">
-            <label class="filter-label">Sumbu Y</label>
-            <select class="form-select form-select-sm" id="scatCacahY" onchange="renderScatterCacah()">
-              <option value="persenOpen" selected>% OPEN/Target</option>
-              <option value="progressCacah">Progres Pencacahan Kemarin</option>
-              <option value="capaianCacah">Capaian Harian Pencacahan</option>
-            </select>
-          </div>
-          <div class="scatter-field" style="min-width:130px">
-            <label class="filter-label">Kecamatan</label>
-            <div class="ms-wrap" id="ms-wrap-scatCacahKec">
-              <div class="ms-trigger" id="ms-trigger-scatCacahKec" onclick="toggleMsDropdown('scatCacahKec')">
-                <span class="ms-trigger-text placeholder" id="ms-text-scatCacahKec">Semua</span>
-                <span class="ms-arrow">▼</span>
-              </div>
-              <div class="ms-dropdown" id="ms-dropdown-scatCacahKec">
-                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatCacahKec',this.value)"></div>
-                <div class="ms-actions">
-                  <button onclick="msSelectAll('scatCacahKec')">Pilih Semua</button>
-                  <button onclick="msClearAll('scatCacahKec')">Hapus</button>
-                </div>
-                <div class="ms-list" id="ms-list-scatCacahKec"></div>
-                <div class="ms-footer"><button onclick="applyMsFilter('scatCacahKec')">Terapkan</button></div>
-              </div>
-            </div>
-          </div>
-          <div class="scatter-field" style="min-width:130px">
-            <label class="filter-label">Desa</label>
-            <div class="ms-wrap" id="ms-wrap-scatCacahDesa">
-              <div class="ms-trigger" id="ms-trigger-scatCacahDesa" onclick="toggleMsDropdown('scatCacahDesa')">
-                <span class="ms-trigger-text placeholder" id="ms-text-scatCacahDesa">Semua</span>
-                <span class="ms-arrow">▼</span>
-              </div>
-              <div class="ms-dropdown" id="ms-dropdown-scatCacahDesa">
-                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatCacahDesa',this.value)"></div>
-                <div class="ms-actions">
-                  <button onclick="msSelectAll('scatCacahDesa')">Pilih Semua</button>
-                  <button onclick="msClearAll('scatCacahDesa')">Hapus</button>
-                </div>
-                <div class="ms-list" id="ms-list-scatCacahDesa"></div>
-                <div class="ms-footer"><button onclick="applyMsFilter('scatCacahDesa')">Terapkan</button></div>
-              </div>
-            </div>
-          </div>
-          <div class="scatter-field" style="min-width:150px">
-            <label class="filter-label">Pengawas Awal</label>
-            <div class="ms-wrap" id="ms-wrap-scatCacahPengawas">
-              <div class="ms-trigger" id="ms-trigger-scatCacahPengawas" onclick="toggleMsDropdown('scatCacahPengawas')">
-                <span class="ms-trigger-text placeholder" id="ms-text-scatCacahPengawas">Semua</span>
-                <span class="ms-arrow">▼</span>
-              </div>
-              <div class="ms-dropdown" id="ms-dropdown-scatCacahPengawas">
-                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatCacahPengawas',this.value)"></div>
-                <div class="ms-actions">
-                  <button onclick="msSelectAll('scatCacahPengawas')">Pilih Semua</button>
-                  <button onclick="msClearAll('scatCacahPengawas')">Hapus</button>
-                </div>
-                <div class="ms-list" id="ms-list-scatCacahPengawas"></div>
-                <div class="ms-footer"><button onclick="applyMsFilter('scatCacahPengawas')">Terapkan</button></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="sh-title" style="margin:8px 0 4px;font-size:12px;color:#0d6efd">📊 Pencacahan — per Username</div>
-        <div style="position:relative;height:260px">
-          <canvas id="scatterCacah"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Scatter Pengawasan -->
-    <div class="col-lg-6">
-      <div class="panel" style="padding:12px">
-        <div class="scatter-controls">
-          <div class="scatter-field">
-            <label class="filter-label">Sumbu X</label>
-            <select class="form-select form-select-sm" id="scatRiksaX" onchange="renderScatterRiksa()">
-              <option value="progressRiksa" selected>Progres Pemeriksaan Kemarin</option>
-              <option value="capaianRiksa">Capaian Harian Pengawasan</option>
-            </select>
-          </div>
-          <button type="button" class="btn btn-outline-secondary btn-sm scatter-swap" onclick="swapScatterAxis('Riksa')" title="Tukar sumbu X dan Y">⇄</button>
-          <div class="scatter-field">
-            <label class="filter-label">Sumbu Y</label>
-            <select class="form-select form-select-sm" id="scatRiksaY" onchange="renderScatterRiksa()">
-              <option value="progressRiksa">Progres Pemeriksaan Kemarin</option>
-              <option value="capaianRiksa" selected>Capaian Harian Pengawasan</option>
-            </select>
-          </div>
-          <div class="scatter-field" style="min-width:130px">
-            <label class="filter-label">Kecamatan</label>
-            <div class="ms-wrap" id="ms-wrap-scatRiksaKec">
-              <div class="ms-trigger" id="ms-trigger-scatRiksaKec" onclick="toggleMsDropdown('scatRiksaKec')">
-                <span class="ms-trigger-text placeholder" id="ms-text-scatRiksaKec">Semua</span>
-                <span class="ms-arrow">▼</span>
-              </div>
-              <div class="ms-dropdown" id="ms-dropdown-scatRiksaKec">
-                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatRiksaKec',this.value)"></div>
-                <div class="ms-actions">
-                  <button onclick="msSelectAll('scatRiksaKec')">Pilih Semua</button>
-                  <button onclick="msClearAll('scatRiksaKec')">Hapus</button>
-                </div>
-                <div class="ms-list" id="ms-list-scatRiksaKec"></div>
-                <div class="ms-footer"><button onclick="applyMsFilter('scatRiksaKec')">Terapkan</button></div>
-              </div>
-            </div>
-          </div>
-          <div class="scatter-field" style="min-width:130px">
-            <label class="filter-label">Desa</label>
-            <div class="ms-wrap" id="ms-wrap-scatRiksaDesa">
-              <div class="ms-trigger" id="ms-trigger-scatRiksaDesa" onclick="toggleMsDropdown('scatRiksaDesa')">
-                <span class="ms-trigger-text placeholder" id="ms-text-scatRiksaDesa">Semua</span>
-                <span class="ms-arrow">▼</span>
-              </div>
-              <div class="ms-dropdown" id="ms-dropdown-scatRiksaDesa">
-                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('scatRiksaDesa',this.value)"></div>
-                <div class="ms-actions">
-                  <button onclick="msSelectAll('scatRiksaDesa')">Pilih Semua</button>
-                  <button onclick="msClearAll('scatRiksaDesa')">Hapus</button>
-                </div>
-                <div class="ms-list" id="ms-list-scatRiksaDesa"></div>
-                <div class="ms-footer"><button onclick="applyMsFilter('scatRiksaDesa')">Terapkan</button></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="sh-title" style="margin:8px 0 4px;font-size:12px;color:#0d6efd">🔎 Pengawasan — per Username</div>
-        <div style="position:relative;height:260px">
-          <canvas id="scatterRiksa"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div><!-- /container -->
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -1293,7 +1122,7 @@ function initDashboard(data, fromCache, fetchedAt) {
   allUsers = [...new Set(rawData.map(x=>x.User).filter(Boolean))].sort();
   document.getElementById('topbarTotal').textContent = `${rawData.length.toLocaleString()} record`;
   resolveSpecialKeys();
-  fillFilters(); buildTable(); fillPivotFilters(); renderPivot(); initScatterPlots();
+  fillFilters(); buildTable(); fillPivotFilters(); renderPivot();
   sendDailySnapshotIfNeeded();
   loadHistoriHarian();
   const btn = document.getElementById('btnRefreshData');
@@ -1394,12 +1223,7 @@ const MS_SELECTED = {
   filterDesa: new Set(),
   filterSLS: new Set(),
   filterPencacahAwal: new Set(),
-  filterPengawasAwal: new Set(),
-  scatCacahKec: new Set(),
-  scatCacahDesa: new Set(),
-  scatCacahPengawas: new Set(),
-  scatRiksaKec: new Set(),
-  scatRiksaDesa: new Set()
+  filterPengawasAwal: new Set()
 };
 
 // field mapped to each ms id
@@ -1407,15 +1231,10 @@ const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
   filterDesa:"Desa", filterSLS:"SLS",
-  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal",
-  scatCacahKec:"Kecamatan", scatCacahDesa:"Desa", scatCacahPengawas:"Pengawas Awal",
-  scatRiksaKec:"Kecamatan", scatRiksaDesa:"Desa"
+  filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal"
 };
 
-const SCATTER_IDS = ['scatCacahKec','scatCacahDesa','scatCacahPengawas','scatRiksaKec','scatRiksaDesa'];
-const SCATTER_CACAH_IDS = ['scatCacahKec','scatCacahDesa','scatCacahPengawas'];
-const SCATTER_RIKSA_IDS = ['scatRiksaKec','scatRiksaDesa'];
-const MAIN_IDS = Object.keys(MAIN_FIELD).filter(id => !SCATTER_IDS.includes(id));
+const MAIN_IDS = Object.keys(MAIN_FIELD);
 
 
 // Get rows filtered by all ms filters EXCEPT excludeId
@@ -1427,23 +1246,11 @@ function getMainFiltered(excludeId){
   }));
 }
 
-// Get rows filtered by scatter group filters (cascade within its own group) EXCEPT excludeId
-function getScatterFiltered(groupIds, excludeId){
-  return rawData.filter(r => groupIds.every(id => {
-    if(id === excludeId) return true;
-    const sel = MS_SELECTED[id];
-    return sel.size === 0 || sel.has(r[MAIN_FIELD[id]]);
-  }));
-}
-
 // Build the checkbox list for one ms dropdown
 function buildMsList(id){
   const listEl = document.getElementById('ms-list-' + id);
   const field   = MAIN_FIELD[id];
-  let subset;
-  if(SCATTER_CACAH_IDS.includes(id)) subset = getScatterFiltered(SCATTER_CACAH_IDS, id);
-  else if(SCATTER_RIKSA_IDS.includes(id)) subset = getScatterFiltered(SCATTER_RIKSA_IDS, id);
-  else subset = getMainFiltered(id);
+  let subset = getMainFiltered(id);
   const vals    = [...new Set(subset.map(r => r[field]).filter(Boolean))].sort();
   const sel     = MS_SELECTED[id];
 
@@ -1522,22 +1329,12 @@ function updateMsTrigger(id){
   }
 }
 
-const ALL_MS_IDS = [...MAIN_IDS, ...SCATTER_IDS];
+const ALL_MS_IDS = [...MAIN_IDS];
 
 // Apply filter (close dropdown, cascade rebuild, redraw table)
 function applyMsFilter(id){
   closeMsDropdown(id);
   updateMsTrigger(id);
-  if(SCATTER_CACAH_IDS.includes(id)){
-    SCATTER_CACAH_IDS.forEach(otherId => { if(otherId !== id) buildMsList(otherId); });
-    if(typeof renderScatterCacah === 'function') renderScatterCacah();
-    return;
-  }
-  if(SCATTER_RIKSA_IDS.includes(id)){
-    SCATTER_RIKSA_IDS.forEach(otherId => { if(otherId !== id) buildMsList(otherId); });
-    if(typeof renderScatterRiksa === 'function') renderScatterRiksa();
-    return;
-  }
   MAIN_IDS.forEach(otherId => {
     if(otherId !== id) buildMsList(otherId);
   });
@@ -1881,241 +1678,8 @@ function sendDailySnapshotIfNeeded(forceManual){
 }
 
 
-/* ══════════════════════════════════════
-   SCATTER PLOT — Metrik per Username
-══════════════════════════════════════ */
-let scatterCacahChart = null;
-let scatterRiksaChart = null;
 
-const SCATTER_COLORS = [
-  '#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6',
-  '#06b6d4','#ec4899','#84cc16','#f97316','#6366f1',
-  '#14b8a6','#d946ef','#eab308','#0ea5e9','#a855f7',
-  '#10b981','#f43f5e','#64748b','#7c3aed','#0891b2'
-];
 
-// Hitung 5 metrik per Username: persenOpen, progressCacah, progressRiksa, capaianCacah, capaianRiksa
-// beserta info Kecamatan & Desa (diambil dari record pertama username tersebut)
-function computeUsernameMetrics(){
-  const START_DATE = new Date('2026-06-08T00:00:00');
-  const today      = new Date(); today.setHours(0,0,0,0);
-  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
-
-  // Target per Pencacah Awal (dari seluruh rawData)
-  const pencacahCount = {};
-  if(PENCACAH_KEY){
-    rawData.forEach(row=>{
-      const pencacah = row[PENCACAH_KEY]||'';
-      if(pencacah) pencacahCount[pencacah] = (pencacahCount[pencacah]||0) + 1;
-    });
-  }
-
-  // Group rawData per Username
-  const usernameCount = {};   // {username: {assignmentStatus: count}}
-  const usernameInfo  = {};   // {username: {kecamatan, desa}}
-  const usernames = new Set();
-  rawData.forEach(row=>{
-    const uname = row.Username || '';
-    if(!uname) return;
-    usernames.add(uname);
-    const asgn = row.Assignment || '(Kosong)';
-    if(!usernameCount[uname]) usernameCount[uname] = {};
-    usernameCount[uname][asgn] = (usernameCount[uname][asgn]||0) + 1;
-    if(!usernameInfo[uname]){
-      usernameInfo[uname] = {
-        kecamatan: row.Kecamatan || '(Kosong)',
-        desa: row.Desa || '(Kosong)',
-        pengawasAwal: row['Pengawas Awal'] || '(Kosong)'
-      };
-    }
-    if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
-      if(!usernameInfo[uname]._prog) usernameInfo[uname]._prog = {cacah:0, riksa:0};
-      if(PROGRESS_CACAH_KEY){
-        const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
-        if(!isNaN(v)) usernameInfo[uname]._prog.cacah += v;
-      }
-      if(PROGRESS_RIKSA_KEY){
-        const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
-        if(!isNaN(v)) usernameInfo[uname]._prog.riksa += v;
-      }
-    }
-  });
-
-  const allAsgnKeys = new Set();
-  rawData.forEach(row=>{ if(row.Assignment) allAsgnKeys.add(row.Assignment); });
-  const openColKey = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
-  const apvPgwKey  = [...allAsgnKeys].find(k=>/approved.+pengawas/i.test(k));
-  const rejPgwKey  = [...allAsgnKeys].find(k=>/rejected.+pengawas/i.test(k));
-  const revPgwKey  = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
-
-  const result = [];
-  usernames.forEach(uname=>{
-    const counts = usernameCount[uname] || {};
-    const info   = usernameInfo[uname] || {};
-    const target = pencacahCount[uname] || 0;
-    const openV  = openColKey ? (counts[openColKey] || 0) : 0;
-
-    const persenOpen = target > 0 ? (openV / target) * 100 : null;
-    const capaianCacah = target > 0 ? (target - openV) / hariKerja : null;
-
-    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
-    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
-    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
-    const total3 = apvV + rejV + revV;
-    const capaianRiksa = total3 > 0 ? total3 / hariKerja : null;
-
-    const progressCacah = (info._prog) ? info._prog.cacah : null;
-    const progressRiksa = (info._prog) ? info._prog.riksa : null;
-
-    result.push({
-      username: uname,
-      kecamatan: info.kecamatan || '(Kosong)',
-      desa: info.desa || '(Kosong)',
-      pengawasAwal: info.pengawasAwal || '(Kosong)',
-      persenOpen,
-      progressCacah,
-      progressRiksa,
-      capaianCacah,
-      capaianRiksa
-    });
-  });
-  return result;
-}
-
-const SCATTER_METRIC_LABELS = {
-  persenOpen:     '% OPEN/Target',
-  progressCacah:  'Progres Pencacahan Kemarin',
-  progressRiksa:  'Progres Pemeriksaan Kemarin',
-  capaianCacah:   'Capaian Harian Pencacahan',
-  capaianRiksa:   'Capaian Harian Pengawasan'
-};
-
-// Tukar pilihan sumbu X dan Y
-function swapScatterAxis(suffix){
-  const xEl = document.getElementById('scat' + suffix + 'X');
-  const yEl = document.getElementById('scat' + suffix + 'Y');
-  const tmp = xEl.value;
-  xEl.value = yEl.value;
-  yEl.value = tmp;
-  if(suffix === 'Cacah') renderScatterCacah();
-  else renderScatterRiksa();
-}
-
-// Tentukan filter & mode pewarnaan berdasarkan kombinasi filter dependen yang dipilih
-// Aturan pewarnaan (semakin spesifik filter, semakin detail grouping warna):
-// - Desa dipilih tepat 1   → warna per Username
-// - Kecamatan dipilih tepat 1 (Desa tidak / >1) → warna per Desa
-// - selain itu             → warna per Kecamatan
-function getScatterGrouping(metrics, kecSet, desaSet, extraSet, extraField){
-  let filtered = metrics;
-  if(kecSet && kecSet.size > 0)   filtered = filtered.filter(m => kecSet.has(m.kecamatan));
-  if(desaSet && desaSet.size > 0) filtered = filtered.filter(m => desaSet.has(m.desa));
-  if(extraSet && extraField && extraSet.size > 0) filtered = filtered.filter(m => extraSet.has(m[extraField]));
-
-  let groupField = 'kecamatan';
-  if(desaSet && desaSet.size === 1) groupField = 'username';
-  else if(kecSet && kecSet.size === 1) groupField = 'desa';
-
-  return { filtered, groupField };
-}
-
-function buildScatterDatasets(metrics, xKey, yKey, groupField){
-  const groups = {};
-  metrics.forEach(m=>{
-    const xv = m[xKey], yv = m[yKey];
-    if(xv === null || yv === null || isNaN(xv) || isNaN(yv)) return;
-    const g = m[groupField] || '(Kosong)';
-    if(!groups[g]) groups[g] = [];
-    groups[g].push({x:xv, y:yv, label:m.username});
-  });
-  const groupNames = Object.keys(groups).sort();
-  return groupNames.map((g, i) => ({
-    label: g,
-    data: groups[g],
-    backgroundColor: SCATTER_COLORS[i % SCATTER_COLORS.length],
-    borderColor: SCATTER_COLORS[i % SCATTER_COLORS.length],
-    pointRadius: 5,
-    pointHoverRadius: 7
-  }));
-}
-
-function scatterChartOptions(xLabel, yLabel, groupLabel){
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { boxWidth: 10, font: {size: 10} },
-        title: { display: true, text: groupLabel, font: {size: 10, weight: 'bold'} }
-      },
-      tooltip: {
-        callbacks: {
-          label: ctx => `${ctx.raw.label}: (${ctx.raw.x.toLocaleString(undefined,{maximumFractionDigits:1})}, ${ctx.raw.y.toLocaleString(undefined,{maximumFractionDigits:1})})`
-        }
-      }
-    },
-    scales: {
-      x: { title: { display:true, text:xLabel, font:{size:11} } },
-      y: { title: { display:true, text:yLabel, font:{size:11} } }
-    }
-  };
-}
-
-function renderScatterCacah(){
-  const canvas = document.getElementById('scatterCacah');
-  if(!canvas || typeof Chart === 'undefined' || !rawData.length) return;
-  const xKey = document.getElementById('scatCacahX').value;
-  const yKey = document.getElementById('scatCacahY').value;
-  const metrics = computeUsernameMetrics();
-  const { filtered, groupField } = getScatterGrouping(
-    metrics,
-    MS_SELECTED.scatCacahKec,
-    MS_SELECTED.scatCacahDesa,
-    MS_SELECTED.scatCacahPengawas,
-    'pengawasAwal'
-  );
-  const datasets = buildScatterDatasets(filtered, xKey, yKey, groupField);
-  const groupLabel = groupField === 'username' ? 'Username' : (groupField === 'desa' ? 'Desa' : 'Kecamatan');
-
-  if(scatterCacahChart) scatterCacahChart.destroy();
-  scatterCacahChart = new Chart(canvas.getContext('2d'), {
-    type: 'scatter',
-    data: { datasets },
-    options: scatterChartOptions(SCATTER_METRIC_LABELS[xKey], SCATTER_METRIC_LABELS[yKey], groupLabel)
-  });
-}
-
-function renderScatterRiksa(){
-  const canvas = document.getElementById('scatterRiksa');
-  if(!canvas || typeof Chart === 'undefined' || !rawData.length) return;
-  const xKey = document.getElementById('scatRiksaX').value;
-  const yKey = document.getElementById('scatRiksaY').value;
-  const metrics = computeUsernameMetrics();
-  const { filtered, groupField } = getScatterGrouping(
-    metrics,
-    MS_SELECTED.scatRiksaKec,
-    MS_SELECTED.scatRiksaDesa,
-    null,
-    null
-  );
-  const datasets = buildScatterDatasets(filtered, xKey, yKey, groupField);
-  const groupLabel = groupField === 'username' ? 'Username' : (groupField === 'desa' ? 'Desa' : 'Kecamatan');
-
-  if(scatterRiksaChart) scatterRiksaChart.destroy();
-  scatterRiksaChart = new Chart(canvas.getContext('2d'), {
-    type: 'scatter',
-    data: { datasets },
-    options: scatterChartOptions(SCATTER_METRIC_LABELS[xKey], SCATTER_METRIC_LABELS[yKey], groupLabel)
-  });
-}
-
-function initScatterPlots(){
-  SCATTER_CACAH_IDS.forEach(id => buildMsList(id));
-  SCATTER_RIKSA_IDS.forEach(id => buildMsList(id));
-  renderScatterCacah();
-  renderScatterRiksa();
-}
 
 /* ══════════════════════════════════════
    TREN HARIAN — Histori dari Google Sheets
@@ -2127,13 +1691,13 @@ function loadHistoriHarian(){
   fetch(HISTORI_API_URL)
     .then(r => r.json())
     .then(res => {
-      if(!res.ok || !Array.isArray(res.data) || res.data.length === 0){
+      if(!res.ok || !Array.isArray(res.harian) || res.harian.length === 0){
         document.getElementById('historiEmptyMsg').style.display = 'block';
         document.getElementById('historiChartsWrap').style.display = 'none';
         document.getElementById('cntHistori').textContent = '';
         return;
       }
-      const data = res.data
+      const data = res.harian
         .filter(d => d.tanggal)
         .sort((a,b) => a.tanggal.localeCompare(b.tanggal));
 
