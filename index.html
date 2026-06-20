@@ -1050,7 +1050,10 @@ body {
           <span style="width:3px;height:14px;background:linear-gradient(180deg,#8b5cf6,#ec4899);border-radius:2px;display:inline-block"></span>
           Per Wilayah
           <span id="cntStackedBar" style="font-size:10px;color:#6c757d;background:#e9ecef;border-radius:12px;padding:2px 8px;font-weight:400"></span>
-          <button onclick="printStackedBar(1)" title="Cetak / Print grafik" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
+          <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
+            <button onclick="downloadChartJpg(1)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer">🖼️ JPG</button>
+            <button onclick="printStackedBar(1)" title="Cetak / buka popup print" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
+          </span>
         </div>
         <!-- Filter -->
         <div class="row g-2 mb-2 align-items-end">
@@ -1103,11 +1106,11 @@ body {
         </div>
         <!-- Canvas -->
         <div style="flex:1;position:relative;overflow-x:auto">
-          <div id="sbChartWrap" style="position:relative;min-height:280px">
+          <div id="sbChartWrap" style="position:relative;min-height:280px;background:#fafbfc;border-radius:10px;border:1px solid #f1f5f9;padding:8px 4px">
             <canvas id="sbChart"></canvas>
           </div>
         </div>
-        <div id="sbLegend" style="display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:10px"></div>
+        <div id="sbLegend" style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px;font-size:10px"></div>
       </div>
     </div>
 
@@ -1118,7 +1121,10 @@ body {
           <span style="width:3px;height:14px;background:linear-gradient(180deg,#0ea5e9,#22c55e);border-radius:2px;display:inline-block"></span>
           Per Petugas
           <span id="cntStackedBar2" style="font-size:10px;color:#6c757d;background:#e9ecef;border-radius:12px;padding:2px 8px;font-weight:400"></span>
-          <button onclick="printStackedBar(2)" title="Cetak / Print grafik" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
+          <span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center">
+            <button onclick="downloadChartJpg(2)" title="Unduh JPG (dengan legenda)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:none;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer">🖼️ JPG</button>
+            <button onclick="printStackedBar(2)" title="Cetak / buka popup print" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:600;border:1px solid #d1d5db;border-radius:8px;background:#f9fafb;color:#374151;cursor:pointer" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='#f9fafb'">🖨️ Cetak</button>
+          </span>
         </div>
         <!-- Filter -->
         <div class="row g-2 mb-2 align-items-end">
@@ -1171,7 +1177,7 @@ body {
         </div>
         <!-- Canvas -->
         <div style="flex:1;position:relative;overflow-x:auto">
-          <div id="sb2ChartWrap" style="position:relative;min-height:280px">
+          <div id="sb2ChartWrap" style="position:relative;min-height:280px;background:#fafbfc;border-radius:10px;border:1px solid #f1f5f9;padding:8px 4px">
             <canvas id="sb2Chart"></canvas>
           </div>
         </div>
@@ -4917,93 +4923,283 @@ function printStackedBar(which){
   const cntEl    = document.getElementById(isChart1 ? 'cntStackedBar' : 'cntStackedBar2');
   if(!canvas) return;
 
-  // Ambil info judul dan filter aktif
-  const judul    = isChart1 ? 'Distribusi Assignment per Wilayah' : 'Distribusi Assignment per Petugas';
+  const judul = isChart1 ? 'Distribusi Assignment per Wilayah' : 'Distribusi Assignment per Petugas';
   const subJudul = isChart1
-    ? (() => {
-        const gb  = document.getElementById('sbGroupBy')?.value || '';
-        const kec = document.getElementById('sbFilterKec')?.value;
-        const des = document.getElementById('sbFilterDesa')?.value;
-        let s = `Tampilkan per: ${gb}`;
-        if(kec) s += ` · Kecamatan: ${kec}`;
-        if(des) s += ` · Desa: ${des}`;
+    ? (function(){
+        var gb  = document.getElementById('sbGroupBy') ? document.getElementById('sbGroupBy').value : '';
+        var kec = document.getElementById('sbFilterKec') ? document.getElementById('sbFilterKec').value : '';
+        var des = document.getElementById('sbFilterDesa') ? document.getElementById('sbFilterDesa').value : '';
+        var s = 'Tampilkan per: ' + gb;
+        if(kec) s += ' \u00b7 Kecamatan: ' + kec;
+        if(des) s += ' \u00b7 Desa: ' + des;
         return s;
-      })()
-    : (() => {
-        const gb  = document.getElementById('sb2GroupBy')?.options[document.getElementById('sb2GroupBy').selectedIndex]?.text || '';
-        const kec = document.getElementById('sb2FilterKec')?.value;
-        const des = document.getElementById('sb2FilterDesa')?.value;
-        let s = `Tampilkan per: ${gb}`;
-        if(kec) s += ` · Kecamatan: ${kec}`;
-        if(des) s += ` · Desa: ${des}`;
+      }())
+    : (function(){
+        var el2 = document.getElementById('sb2GroupBy');
+        var gb  = el2 && el2.options[el2.selectedIndex] ? el2.options[el2.selectedIndex].text : '';
+        var kec = document.getElementById('sb2FilterKec') ? document.getElementById('sb2FilterKec').value : '';
+        var des = document.getElementById('sb2FilterDesa') ? document.getElementById('sb2FilterDesa').value : '';
+        var s = 'Tampilkan per: ' + gb;
+        if(kec) s += ' \u00b7 Kecamatan: ' + kec;
+        if(des) s += ' \u00b7 Desa: ' + des;
         return s;
-      })();
+      }());
 
-  const cntText  = cntEl ? cntEl.textContent : '';
-  const imgData  = canvas.toDataURL('image/png', 1.0);
-  const legendHTML = legendEl ? legendEl.innerHTML : '';
+  var cntText   = cntEl ? cntEl.textContent : '';
+  var legendHTML = legendEl ? legendEl.innerHTML : '';
+  var nowStr    = new Date().toLocaleString('id-ID', {dateStyle:'long', timeStyle:'short'});
+  var nowDate   = new Date().toLocaleDateString('id-ID', {dateStyle:'long'});
 
-  // Buka window print
-  const pw = window.open('', '_blank', 'width=1100,height=800');
-  if(!pw){ alert('Pop-up diblokir browser. Izinkan pop-up untuk fitur cetak.'); return; }
-
-  pw.document.write(`<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<title>${judul} — SE2026 Klungkung</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1d23; background: #fff; padding: 24px 32px; }
-  .print-header { border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; }
-  .print-title  { font-size: 18px; font-weight: 700; color: #1e293b; }
-  .print-sub    { font-size: 11px; color: #64748b; margin-top: 4px; }
-  .print-meta   { font-size: 10px; color: #94a3b8; text-align: right; }
-  .print-badge  { display: inline-block; background: #e9ecef; border-radius: 12px; padding: 2px 10px; font-size: 11px; color: #495057; margin-top: 6px; }
-  .chart-wrap   { width: 100%; text-align: center; margin-bottom: 20px; }
-  .chart-wrap img { max-width: 100%; height: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
-  .legend-wrap  { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 20px; padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
-  .legend-wrap span { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
-  .print-footer { border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 10px; color: #94a3b8; display: flex; justify-content: space-between; }
-  @media print {
-    body { padding: 10px 16px; }
-    .no-print { display: none !important; }
-    @page { size: A4 landscape; margin: 15mm; }
+  // ── Buat combined canvas (chart + legend) untuk export JPG ──
+  // Render legend ke canvas lewat offscreen div → html2canvas tidak perlu,
+  // cukup gambar chart lalu tambahkan legend sebagai teks di bawahnya
+  // Build combined canvas: chart + legend
+  var tmpCanvas = document.createElement('canvas');
+  var LEGEND_H  = 0;
+  // Parse legend items dari DOM supaya bisa digambar manual
+  var legendItems = [];
+  if(legendEl){
+    legendEl.querySelectorAll('span[style]').forEach(function(span){
+      var dotEl   = span.querySelector('span[style*="background"]');
+      var nameEl  = span.querySelectorAll('span')[1];
+      var cntEl2  = span.querySelectorAll('span')[2];
+      var pctEl   = span.querySelectorAll('span')[3];
+      if(dotEl && nameEl){
+        var colorMatch = (dotEl.getAttribute('style')||'').match(/background:\s*([^;]+)/);
+        legendItems.push({
+          color : colorMatch ? colorMatch[1].trim() : '#999',
+          name  : nameEl ? nameEl.textContent.trim() : '',
+          cnt   : cntEl2 ? cntEl2.textContent.trim() : '',
+          pct   : pctEl  ? pctEl.textContent.trim()  : ''
+        });
+      }
+    });
   }
-</style>
-</head>
-<body>
-<div class="print-header">
-  <div>
-    <div class="print-title">${judul}</div>
-    <div class="print-sub">${subJudul}</div>
-    <div class="print-badge">${cntText}</div>
-  </div>
-  <div class="print-meta">
-    BPS Kabupaten Klungkung<br>
-    SE2026 — Dashboard Monitoring<br>
-    Dicetak: ${new Date().toLocaleString('id-ID',{dateStyle:'long',timeStyle:'short'})}
-  </div>
-</div>
-<div class="chart-wrap">
-  <img src="${imgData}" alt="${judul}">
-</div>
-<div class="legend-wrap">${legendHTML}</div>
-<div class="print-footer">
-  <span>Dashboard Monitoring SE2026 · BPS Kabupaten Klungkung</span>
-  <span>Data per: ${new Date().toLocaleDateString('id-ID',{dateStyle:'long'})}</span>
-</div>
-<div class="no-print" style="text-align:center;margin-top:20px">
-  <button onclick="window.print()" style="padding:8px 24px;background:#1e293b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">🖨️ Print Sekarang</button>
-  &nbsp;
-  <button onclick="window.close()" style="padding:8px 24px;background:#f1f5f9;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:13px;cursor:pointer">✕ Tutup</button>
-</div>
-</body>
-</html>`);
-  pw.document.close();
-  // Tunggu gambar load lalu auto-trigger print dialog
-  pw.onload = () => setTimeout(() => pw.print(), 400);
+
+  var COLS     = 3;
+  var ITEM_W   = 300;
+  var ITEM_H   = 26;
+  var ROWS     = Math.ceil(legendItems.length / COLS);
+  var PAD      = 20;
+  LEGEND_H = legendItems.length > 0 ? ROWS * ITEM_H + PAD * 2 + 10 : 0;
+
+  // Gambar langsung canvas ke canvas tanpa new Image() supaya tidak trigger reload
+  tmpCanvas.width  = Math.max(canvas.width, COLS * ITEM_W + PAD * 2);
+  tmpCanvas.height = canvas.height + LEGEND_H;
+  var tCtx = tmpCanvas.getContext('2d');
+
+  tCtx.fillStyle = '#ffffff';
+  tCtx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+  tCtx.drawImage(canvas, 0, 0);
+
+  if(legendItems.length > 0){
+    var startY = canvas.height + PAD;
+    tCtx.strokeStyle = '#e2e8f0';
+    tCtx.lineWidth = 1;
+    tCtx.beginPath();
+    tCtx.moveTo(PAD, canvas.height + 8);
+    tCtx.lineTo(tmpCanvas.width - PAD, canvas.height + 8);
+    tCtx.stroke();
+    tCtx.font = 'bold 11px Arial';
+    tCtx.fillStyle = '#64748b';
+    tCtx.fillText('Keterangan:', PAD, canvas.height + PAD + 2);
+    startY = canvas.height + PAD + 16;
+    legendItems.forEach(function(item, i){
+      var col = i % COLS;
+      var row = Math.floor(i / COLS);
+      var x   = PAD + col * ITEM_W;
+      var y   = startY + row * ITEM_H;
+      tCtx.fillStyle = item.color;
+      tCtx.beginPath();
+      if(tCtx.roundRect){ tCtx.roundRect(x, y - 9, 12, 12, 3); }
+      else { tCtx.rect(x, y - 9, 12, 12); }
+      tCtx.fill();
+      tCtx.font = 'bold 10px Arial';
+      tCtx.fillStyle = '#1e293b';
+      var label = item.name + (item.cnt ? '  ' + item.cnt : '') + (item.pct ? '  ' + item.pct : '');
+      tCtx.fillText(label, x + 18, y + 1);
+    });
+  }
+
+  var combinedPng = tmpCanvas.toDataURL('image/png', 1.0);
+  var combinedJpg = tmpCanvas.toDataURL('image/jpeg', 0.95);
+  _openPrintWindow(judul, subJudul, cntText, legendHTML, nowStr, nowDate, combinedPng, combinedJpg);
 }
+
+function downloadChartJpg(which){
+  var isChart1 = which === 1;
+  var srcCanvas = document.getElementById(isChart1 ? 'sbChart' : 'sb2Chart');
+  var legendEl  = document.getElementById(isChart1 ? 'sbLegend' : 'sb2Legend');
+  if(!srcCanvas){ alert('Canvas tidak ditemukan.'); return; }
+  var judul = isChart1 ? 'Distribusi_per_Wilayah' : 'Distribusi_per_Petugas';
+
+  // Parse legend items langsung dari DOM
+  var legendItems = [];
+  if(legendEl){
+    legendEl.querySelectorAll('span[style]').forEach(function(span){
+      var dotEl  = span.querySelector('span[style*="background"]');
+      var nameEl = span.querySelectorAll('span')[1];
+      var cntEl2 = span.querySelectorAll('span')[2];
+      var pctEl  = span.querySelectorAll('span')[3];
+      if(dotEl && nameEl){
+        var cm = (dotEl.getAttribute('style')||'').match(/background:\s*([^;]+)/);
+        legendItems.push({
+          color: cm ? cm[1].trim() : '#999',
+          name : nameEl.textContent.trim(),
+          cnt  : cntEl2 ? cntEl2.textContent.trim() : '',
+          pct  : pctEl  ? pctEl.textContent.trim()  : ''
+        });
+      }
+    });
+  }
+
+  var COLS     = 3;
+  var ITEM_W   = Math.max(280, Math.floor(srcCanvas.width / COLS));
+  var ITEM_H   = 28;
+  var PAD      = 20;
+  var ROWS     = Math.ceil(legendItems.length / COLS);
+  var LEGEND_H = legendItems.length > 0 ? ROWS * ITEM_H + PAD * 2 + 14 : 0;
+
+  // Langsung gambar dari canvas ke canvas — TANPA new Image() untuk hindari reload
+  var tmp  = document.createElement('canvas');
+  tmp.width  = Math.max(srcCanvas.width, COLS * ITEM_W + PAD * 2);
+  tmp.height = srcCanvas.height + LEGEND_H;
+  var tCtx = tmp.getContext('2d');
+
+  // Background putih
+  tCtx.fillStyle = '#ffffff';
+  tCtx.fillRect(0, 0, tmp.width, tmp.height);
+
+  // Gambar chart langsung dari canvas sumber (tidak perlu Image())
+  tCtx.drawImage(srcCanvas, 0, 0);
+
+  // Gambar legend strip
+  if(legendItems.length > 0){
+    var sepY = srcCanvas.height + 8;
+    tCtx.strokeStyle = '#e2e8f0';
+    tCtx.lineWidth = 1;
+    tCtx.beginPath();
+    tCtx.moveTo(PAD, sepY);
+    tCtx.lineTo(tmp.width - PAD, sepY);
+    tCtx.stroke();
+
+    tCtx.font = 'bold 11px Arial';
+    tCtx.fillStyle = '#64748b';
+    tCtx.fillText('Keterangan:', PAD, srcCanvas.height + PAD + 2);
+
+    var startY = srcCanvas.height + PAD + 18;
+    legendItems.forEach(function(item, i){
+      var col = i % COLS;
+      var row = Math.floor(i / COLS);
+      var x   = PAD + col * ITEM_W;
+      var y   = startY + row * ITEM_H;
+
+      // Kotak warna
+      tCtx.fillStyle = item.color;
+      tCtx.beginPath();
+      if(tCtx.roundRect){
+        tCtx.roundRect(x, y - 9, 13, 13, 3);
+      } else {
+        tCtx.rect(x, y - 9, 13, 13);
+      }
+      tCtx.fill();
+
+      // Teks
+      tCtx.font = 'bold 10px Arial';
+      tCtx.fillStyle = '#1e293b';
+      var label = item.name;
+      if(item.cnt) label += '   ' + item.cnt;
+      if(item.pct) label += '   ' + item.pct;
+      tCtx.fillText(label, x + 18, y + 1);
+    });
+  }
+
+  // Download — pakai URL.createObjectURL supaya tidak ada navigasi sama sekali
+  tmp.toBlob(function(blob){
+    var url  = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href     = url;
+    link.download = judul + '_SE2026.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }, 'image/jpeg', 0.95);
+}
+
+function _openPrintWindow(judul, subJudul, cntText, legendHTML, nowStr, nowDate, combinedPng, combinedJpg){
+  var pw = window.open('', '_blank', 'width=1140,height=860');
+  if(!pw){ alert('Pop-up diblokir. Izinkan pop-up untuk fitur ini.'); return; }
+
+  var parts = [];
+  parts.push('<!DOCTYPE html>');
+  parts.push('<html lang="id">');
+  parts.push('<head>');
+  parts.push('<meta charset="utf-8">');
+  parts.push('<meta name="viewport" content="width=device-width,initial-scale=1">');
+  parts.push('<title>' + judul + ' \u2014 SE2026<\/title>');
+  parts.push('<style>');
+  parts.push('*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}');
+  parts.push('body{font-family:"Segoe UI",Arial,sans-serif;background:#f0f4f8;font-size:12px;color:#1a1d23}');
+  parts.push('.page{max-width:1080px;margin:0 auto;padding:28px 32px;background:#fff;min-height:100vh}');
+  parts.push('.hdr{background:linear-gradient(135deg,#1e293b 0%,#0f4c81 100%);border-radius:14px;padding:18px 24px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;gap:16px}');
+  parts.push('.hdr-l{display:flex;align-items:center;gap:14px}');
+  parts.push('.hdr-ico{width:46px;height:46px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}');
+  parts.push('.hdr-title{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.01em}');
+  parts.push('.hdr-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px}');
+  parts.push('.hdr-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 14px;font-size:11px;color:rgba(255,255,255,.85);font-weight:600;white-space:nowrap}');
+  parts.push('.hdr-meta{text-align:right;font-size:10px;color:rgba(255,255,255,.6);line-height:1.7}');
+  parts.push('.chart-box{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:14px}');
+  parts.push('.chart-box img{display:block;width:100%;height:auto}');
+  parts.push('.footer{display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;margin-top:4px}');
+  parts.push('.btn-bar{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}');
+  parts.push('.btn-bar button{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;border:none}');
+  parts.push('.b-print{background:linear-gradient(135deg,#1e293b,#0f4c81);color:#fff}');
+  parts.push('.b-jpg{background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff}');
+  parts.push('.b-close{background:#f1f5f9;color:#475569;border:1px solid #d1d5db !important}');
+  parts.push('@media print{.btn-bar{display:none!important}body{background:#fff}.page{box-shadow:none;padding:10px 16px}@page{size:A4 landscape;margin:12mm}}');
+  parts.push('<\/style>');
+  parts.push('<\/head>');
+  parts.push('<body>');
+  parts.push('<div class="page">');
+  parts.push('<div class="btn-bar">');
+  parts.push('<button class="b-print" onclick="window.print()">\ud83d\udda8\ufe0f Cetak \/ Print<\/button>');
+  parts.push('<button class="b-jpg" id="btnJpg">\ud83d\uddbc\ufe0f Unduh JPG<\/button>');
+  parts.push('<button class="b-close" onclick="window.close()">\u2715 Tutup<\/button>');
+  parts.push('<\/div>');
+  parts.push('<div class="hdr">');
+  parts.push('<div class="hdr-l"><div class="hdr-ico">\ud83d\udcca<\/div>');
+  parts.push('<div><div class="hdr-title">' + judul + '<\/div>');
+  parts.push('<div class="hdr-sub">' + subJudul + '<\/div>');
+  parts.push('<div style="margin-top:6px"><span class="hdr-badge">' + cntText + '<\/span><\/div><\/div><\/div>');
+  parts.push('<div class="hdr-meta">BPS Kabupaten Klungkung<br>SE2026 \u2014 Dashboard Monitoring<br>Dicetak: ' + nowStr + '<\/div>');
+  parts.push('<\/div>');
+  parts.push('<div class="chart-box"><img id="combinedImg" src="' + combinedPng + '" alt="' + judul + '"><\/div>');
+  parts.push('<div class="footer">');
+  parts.push('<span>\ud83c\udfe2 BPS Kabupaten Klungkung \u00b7 SE2026<\/span>');
+  parts.push('<span>Data per: ' + nowDate + '<\/span>');
+  parts.push('<\/div>');
+  parts.push('<\/div>');
+  // Script download JPG — embed data sebagai variabel, bukan re-capture dari parent
+  parts.push('<script>');
+  parts.push('(function(){');
+  parts.push('  var jpgSrc = document.getElementById("combinedImg").src;');
+  parts.push('  document.getElementById("btnJpg").addEventListener("click",function(){');
+  parts.push('    var a=document.createElement("a");');
+  parts.push('    a.href=jpgSrc.replace("image/png","image/jpeg");');
+  parts.push('    a.download="' + judul.replace(/[^a-zA-Z0-9]/g,'_') + '_SE2026.jpg";');
+  parts.push('    document.body.appendChild(a);a.click();document.body.removeChild(a);');
+  parts.push('  });');
+  parts.push('}());');
+  parts.push('<\/script>');
+  parts.push('<\/body>');
+  parts.push('<\/html>');
+
+  pw.document.open();
+  pw.document.write(parts.join('\n'));
+  pw.document.close();
+}
+
 
 function populateSbFilters(){
   // Isi dropdown Kecamatan
@@ -5147,14 +5343,21 @@ function renderStackedBar(){
 
   sbChartInstance = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets },
+    data: { labels, datasets: datasets.map(ds=>({...ds, borderRadius:4, borderSkipped:false, borderWidth:1.5})) },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { right: 14, top: 6, bottom: 6 } },
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: 'rgba(15,23,42,.93)',
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          footerColor: '#7dd3fc',
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             label(ctx){
               const asgn  = ctx.dataset.label;
@@ -5162,13 +5365,13 @@ function renderStackedBar(){
               const lbl   = ctx.label;
               const tot   = labelTotals[lbl] || 1;
               const pct   = ((count/tot)*100).toFixed(1);
-              if(valMode === 'pct')   return ` ${asgn}: ${pct}%`;
-              if(valMode === 'count') return ` ${asgn}: ${count.toLocaleString()}`;
-              return ` ${asgn}: ${count.toLocaleString()} (${pct}%)`;
+              if(valMode === 'pct')   return ' ' + asgn + ': ' + pct + '%';
+              if(valMode === 'count') return ' ' + asgn + ': ' + count.toLocaleString();
+              return ' ' + asgn + ': ' + count.toLocaleString() + ' (' + pct + '%)';
             },
             footer(items){
               const lbl = items[0]?.label;
-              return `Total: ${(labelTotals[lbl]||0).toLocaleString()}`;
+              return 'Total: ' + (labelTotals[lbl]||0).toLocaleString();
             }
           }
         },
@@ -5179,19 +5382,21 @@ function renderStackedBar(){
           stacked: true,
           ticks: {
             font: { size: 10, family: "'Inter',sans-serif" },
-            color: '#64748b',
+            color: '#94a3b8',
             callback(v){ return valMode === 'pct' ? v + '%' : v.toLocaleString(); }
           },
-          grid: { color: '#e2e8f0' },
+          grid: { color: 'rgba(226,232,240,.5)', lineWidth: 1 },
+          border: { dash: [4,3], color: 'transparent' },
           ...(valMode === 'pct' ? { max: 100 } : {})
         },
         y: {
           stacked: true,
-          ticks: { font: { size: 11, family: "'Inter',sans-serif" }, color: '#1e293b' },
-          grid: { display: false }
+          ticks: { font: { size: 11.5, family: "'Inter',sans-serif" }, color: '#1e293b', padding: 6 },
+          grid: { display: false },
+          border: { color: '#e2e8f0' }
         }
       },
-      animation: { duration: 300 }
+      animation: { duration: 400, easing: 'easeOutQuart' }
     },
     plugins: [{
       id: 'sbDatalabels',
@@ -5215,20 +5420,23 @@ function renderStackedBar(){
             else txt = pct >= 3 ? `${val}\n${pct.toFixed(0)}%` : (barW >= 40 ? val.toLocaleString() : '');
             if(!txt) return;
             ctxC.save();
-            ctxC.font = "bold 9px 'Inter',sans-serif";
+            ctxC.font = "bold 10px 'Inter',sans-serif";
             ctxC.fillStyle = '#fff';
+            ctxC.shadowColor = 'rgba(0,0,0,.4)';
+            ctxC.shadowBlur = 3;
             ctxC.textAlign = 'center';
             ctxC.textBaseline = 'middle';
             const cx = (bar.x + bar.base) / 2;
             const cy = bar.y;
             const lines = txt.split('\n');
             if(lines.length > 1){
-              ctxC.fillText(lines[0], cx, cy - 5);
+              ctxC.fillText(lines[0], cx, cy - 6);
               ctxC.font = "9px 'Inter',sans-serif";
-              ctxC.fillText(lines[1], cx, cy + 5);
+              ctxC.fillText(lines[1], cx, cy + 6);
             } else {
               ctxC.fillText(txt, cx, cy);
             }
+            ctxC.shadowBlur = 0;
             ctxC.restore();
           });
         });
@@ -5242,11 +5450,12 @@ function renderStackedBar(){
     const col = getSbAssignColor(a);
     const tot = asgnTotals[a]||0;
     const pct = grandTotal > 0 ? ((tot/grandTotal)*100).toFixed(1) : '0.0';
-    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px">
-      <span style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></span>
-      <span style="font-weight:600;color:#1e293b">${a}</span>
-      <span style="color:#64748b">${tot.toLocaleString()} · ${pct}%</span>
-    </span>`;
+    return '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 8px;background:#fff;border:1.5px solid '+col+'33;border-left:4px solid '+col+';border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">'
+      +'<span style="width:10px;height:10px;border-radius:3px;background:'+col+';flex-shrink:0"></span>'
+      +'<span style="font-weight:700;color:#1e293b;font-size:11px">'+a+'</span>'
+      +'<span style="color:#64748b;font-size:10px;font-weight:600">'+tot.toLocaleString()+'</span>'
+      +'<span style="color:'+col+';font-size:10px;font-weight:700;background:'+col+'18;border-radius:10px;padding:1px 6px">'+pct+'%</span>'
+      +'</span>';
   }).join('');
 }
 
@@ -5395,14 +5604,21 @@ function renderStackedBar2(){
 
   sb2ChartInstance = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets },
+    data: { labels, datasets: datasets.map(ds=>({...ds, borderRadius:4, borderSkipped:false, borderWidth:1.5})) },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { right: 14, top: 6, bottom: 6 } },
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: 'rgba(15,23,42,.93)',
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          footerColor: '#7dd3fc',
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             label(ctx){
               const count = ctx.parsed.x;
@@ -5410,13 +5626,13 @@ function renderStackedBar2(){
               const tot   = labelTotals2[lbl]||1;
               const pct   = ((count/tot)*100).toFixed(1);
               const asgn  = ctx.dataset.label;
-              if(valMode==='pct')   return ` ${asgn}: ${pct}%`;
-              if(valMode==='count') return ` ${asgn}: ${count.toLocaleString()}`;
-              return ` ${asgn}: ${count.toLocaleString()} (${pct}%)`;
+              if(valMode==='pct')   return ' ' + asgn + ': ' + pct + '%';
+              if(valMode==='count') return ' ' + asgn + ': ' + count.toLocaleString();
+              return ' ' + asgn + ': ' + count.toLocaleString() + ' (' + pct + '%)';
             },
             footer(items){
               const lbl = items[0]?.label;
-              return `Total: ${(labelTotals2[lbl]||0).toLocaleString()}`;
+              return 'Total: ' + (labelTotals2[lbl]||0).toLocaleString();
             }
           }
         }
@@ -5424,17 +5640,19 @@ function renderStackedBar2(){
       scales: {
         x: {
           stacked: true,
-          ticks: { font:{size:10,family:"'Inter',sans-serif"}, color:'#64748b' },
-          grid: { color:'#e2e8f0' },
+          ticks: { font:{size:10,family:"'Inter',sans-serif"}, color:'#94a3b8' },
+          grid: { color:'rgba(226,232,240,.5)', lineWidth:1 },
+          border: { dash:[4,3], color:'transparent' },
           ...(valMode==='pct'?{max:100}:{})
         },
         y: {
           stacked: true,
-          ticks: { font:{size:11,family:"'Inter',sans-serif"}, color:'#1e293b' },
-          grid: { display:false }
+          ticks: { font:{size:11.5,family:"'Inter',sans-serif"}, color:'#1e293b', padding:6 },
+          grid: { display:false },
+          border: { color:'#e2e8f0' }
         }
       },
-      animation: { duration:300 }
+      animation: { duration:400, easing:'easeOutQuart' }
     },
     plugins: [{
       id: 'sb2Datalabels',
@@ -5458,20 +5676,23 @@ function renderStackedBar2(){
             else txt = pct>=3 ? `${val}\n${pct.toFixed(0)}%` : (barW>=40 ? val.toLocaleString() : '');
             if(!txt) return;
             ctxC.save();
-            ctxC.font = "bold 9px 'Inter',sans-serif";
+            ctxC.font = "bold 10px 'Inter',sans-serif";
             ctxC.fillStyle = '#fff';
+            ctxC.shadowColor = 'rgba(0,0,0,.4)';
+            ctxC.shadowBlur = 3;
             ctxC.textAlign = 'center';
             ctxC.textBaseline = 'middle';
             const cx = (bar.x+bar.base)/2;
             const cy = bar.y;
             const lines = txt.split('\n');
             if(lines.length>1){
-              ctxC.fillText(lines[0], cx, cy-5);
+              ctxC.fillText(lines[0], cx, cy-6);
               ctxC.font = "9px 'Inter',sans-serif";
-              ctxC.fillText(lines[1], cx, cy+5);
+              ctxC.fillText(lines[1], cx, cy+6);
             } else {
               ctxC.fillText(txt, cx, cy);
             }
+            ctxC.shadowBlur = 0;
             ctxC.restore();
           });
         });
@@ -5485,11 +5706,12 @@ function renderStackedBar2(){
     const col = getSbAssignColor(a);
     const tot = asgnTotals2[a]||0;
     const pct = grandTotal>0 ? ((tot/grandTotal)*100).toFixed(1) : '0.0';
-    return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px">
-      <span style="width:9px;height:9px;border-radius:50%;background:${col};flex-shrink:0"></span>
-      <span style="font-weight:600;color:#1e293b">${a}</span>
-      <span style="color:#64748b">${tot.toLocaleString()} · ${pct}%</span>
-    </span>`;
+    return '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 8px;background:#fff;border:1.5px solid '+col+'33;border-left:4px solid '+col+';border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">'
+      +'<span style="width:10px;height:10px;border-radius:3px;background:'+col+';flex-shrink:0"></span>'
+      +'<span style="font-weight:700;color:#1e293b;font-size:11px">'+a+'</span>'
+      +'<span style="color:#64748b;font-size:10px;font-weight:600">'+tot.toLocaleString()+'</span>'
+      +'<span style="color:'+col+';font-size:10px;font-weight:700;background:'+col+'18;border-radius:10px;padding:1px 6px">'+pct+'%</span>'
+      +'</span>';
   }).join('');
 }
 
