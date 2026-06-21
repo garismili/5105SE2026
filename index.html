@@ -1018,17 +1018,137 @@ body {
     <div id="historiChartsWrap" style="display:none">
       <div class="row g-2">
         <div class="col-lg-4">
-          <div style="position:relative;height:260px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+          <div>
+            <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Kecamatan</label>
+            <div class="ms-scatter" id="ms-trenProgresKec" style="min-width:120px">
+              <div class="ms-trigger" id="ms-trigger-trenProgresKec" onclick="toggleScatterMsDropdown('trenProgresKec')">
+                <span class="ms-trigger-text placeholder" id="ms-text-trenProgresKec">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-trenProgresKec">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('trenProgresKec',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="scatterMsSelectAll('trenProgresKec')">Pilih Semua</button>
+                  <button onclick="scatterMsClearAll('trenProgresKec')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-trenProgresKec"></div>
+                <div class="ms-footer"><button onclick="applyTrenChartFilter('Progres')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Username (Pencacah)</label>
+            <div class="ms-scatter" id="ms-trenProgresUser" style="min-width:140px">
+              <div class="ms-trigger" id="ms-trigger-trenProgresUser" onclick="toggleScatterMsDropdown('trenProgresUser')">
+                <span class="ms-trigger-text placeholder" id="ms-text-trenProgresUser">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-trenProgresUser">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('trenProgresUser',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="scatterMsSelectAll('trenProgresUser')">Pilih Semua</button>
+                  <button onclick="scatterMsClearAll('trenProgresUser')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-trenProgresUser"></div>
+                <div class="ms-footer"><button onclick="applyTrenChartFilter('Progres')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <button onclick="resetTrenChartFilter('Progres')" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
+        </div>
+          <div style="position:relative;height:240px">
+            <button onclick="_downloadCanvasJpg(document.getElementById('trendProgres'),'Tren_Pencacahan_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             <canvas id="trendProgres"></canvas>
           </div>
         </div>
         <div class="col-lg-4">
-          <div style="position:relative;height:260px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+          <div>
+            <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Kecamatan</label>
+            <div class="ms-scatter" id="ms-trenCapaianKec" style="min-width:120px">
+              <div class="ms-trigger" id="ms-trigger-trenCapaianKec" onclick="toggleScatterMsDropdown('trenCapaianKec')">
+                <span class="ms-trigger-text placeholder" id="ms-text-trenCapaianKec">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-trenCapaianKec">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('trenCapaianKec',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="scatterMsSelectAll('trenCapaianKec')">Pilih Semua</button>
+                  <button onclick="scatterMsClearAll('trenCapaianKec')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-trenCapaianKec"></div>
+                <div class="ms-footer"><button onclick="applyTrenChartFilter('Capaian')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Username (Pengawas)</label>
+            <div class="ms-scatter" id="ms-trenCapaianUser" style="min-width:140px">
+              <div class="ms-trigger" id="ms-trigger-trenCapaianUser" onclick="toggleScatterMsDropdown('trenCapaianUser')">
+                <span class="ms-trigger-text placeholder" id="ms-text-trenCapaianUser">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-trenCapaianUser">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('trenCapaianUser',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="scatterMsSelectAll('trenCapaianUser')">Pilih Semua</button>
+                  <button onclick="scatterMsClearAll('trenCapaianUser')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-trenCapaianUser"></div>
+                <div class="ms-footer"><button onclick="applyTrenChartFilter('Capaian')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <button onclick="resetTrenChartFilter('Capaian')" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
+        </div>
+          <div style="position:relative;height:240px">
+            <button onclick="_downloadCanvasJpg(document.getElementById('trendCapaian'),'Tren_Pemeriksaan_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             <canvas id="trendCapaian"></canvas>
           </div>
         </div>
         <div class="col-lg-4">
-          <div style="position:relative;height:260px">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin-bottom:6px;padding:7px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;font-size:11px">
+          <div>
+            <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Kecamatan</label>
+            <div class="ms-scatter" id="ms-trenOpenKec" style="min-width:120px">
+              <div class="ms-trigger" id="ms-trigger-trenOpenKec" onclick="toggleScatterMsDropdown('trenOpenKec')">
+                <span class="ms-trigger-text placeholder" id="ms-text-trenOpenKec">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-trenOpenKec">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('trenOpenKec',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="scatterMsSelectAll('trenOpenKec')">Pilih Semua</button>
+                  <button onclick="scatterMsClearAll('trenOpenKec')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-trenOpenKec"></div>
+                <div class="ms-footer"><button onclick="applyTrenChartFilter('Open')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px">Username (Pencacah)</label>
+            <div class="ms-scatter" id="ms-trenOpenUser" style="min-width:140px">
+              <div class="ms-trigger" id="ms-trigger-trenOpenUser" onclick="toggleScatterMsDropdown('trenOpenUser')">
+                <span class="ms-trigger-text placeholder" id="ms-text-trenOpenUser">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-trenOpenUser">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('trenOpenUser',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="scatterMsSelectAll('trenOpenUser')">Pilih Semua</button>
+                  <button onclick="scatterMsClearAll('trenOpenUser')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-trenOpenUser"></div>
+                <div class="ms-footer"><button onclick="applyTrenChartFilter('Open')">Terapkan</button></div>
+              </div>
+            </div>
+          </div>
+          <button onclick="resetTrenChartFilter('Open')" style="padding:4px 10px;font-size:10px;font-weight:600;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;align-self:flex-end">↺ Reset</button>
+        </div>
+          <div style="position:relative;height:240px">
+            <button onclick="_downloadCanvasJpg(document.getElementById('trendOpen'),'Tren_OPEN_SE2026')" title="Unduh JPG" style="position:absolute;top:4px;right:4px;z-index:10;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
             <canvas id="trendOpen"></canvas>
           </div>
         </div>
@@ -1444,17 +1564,22 @@ body {
           <option value="capaianHarianPencacahan">Capaian Harian Pencacahan</option>
         </select>
       </div>
-      <div class="scatter-field" style="min-width:110px">
-        <label class="filter-label">Tgl Awal</label>
-        <select class="form-select form-select-sm" id="scatCacahTglAwal" onchange="renderScatterCacah()">
-          <option value="">Semua</option>
-        </select>
-      </div>
-      <div class="scatter-field" style="min-width:110px">
-        <label class="filter-label">Tgl Akhir</label>
-        <select class="form-select form-select-sm" id="scatCacahTglAkhir" onchange="renderScatterCacah()">
-          <option value="">Semua</option>
-        </select>
+      <div class="scatter-field" style="min-width:150px">
+        <label class="filter-label">Tanggal</label>
+        <div class="ms-scatter" id="ms-scatterCacahTgl">
+          <div class="ms-trigger" id="ms-trigger-scatterCacahTgl" onclick="toggleScatterMsDropdown('scatterCacahTgl')">
+            <span class="ms-trigger-text placeholder" id="ms-text-scatterCacahTgl">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-scatterCacahTgl">
+            <div class="ms-actions">
+              <button onclick="scatterMsSelectAll('scatterCacahTgl')">Pilih Semua</button>
+              <button onclick="scatterMsClearAll('scatterCacahTgl')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-scatterCacahTgl"></div>
+            <div class="ms-footer"><button onclick="applyScatterMsFilter('scatterCacahTgl','Cacah')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="scatter-field" style="min-width:140px">
         <label class="filter-label">Kecamatan</label>
@@ -1501,7 +1626,10 @@ body {
         </button>
       </div>
     </div>
-    <div class="sh-title" style="margin:8px 0 4px;font-size:12px;color:#0d6efd">📊 Pencacahan — per Username</div>
+    <div style="display:flex;align-items:center;margin:8px 0 4px">
+      <div class="sh-title" style="font-size:12px;color:#0d6efd">📊 Pencacahan — per Username</div>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterCacah'),'ScatterPlot_Pencacahan_SE2026')" title="Unduh JPG" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+    </div>
     <div style="position:relative;height:260px">
       <canvas id="scatterCacah"></canvas>
     </div>
@@ -1529,17 +1657,22 @@ body {
           <option value="capaianHarianPengawasan" selected>Capaian Harian Pengawasan</option>
         </select>
       </div>
-      <div class="scatter-field" style="min-width:110px">
-        <label class="filter-label">Tgl Awal</label>
-        <select class="form-select form-select-sm" id="scatRiksaTglAwal" onchange="renderScatterRiksa()">
-          <option value="">Semua</option>
-        </select>
-      </div>
-      <div class="scatter-field" style="min-width:110px">
-        <label class="filter-label">Tgl Akhir</label>
-        <select class="form-select form-select-sm" id="scatRiksaTglAkhir" onchange="renderScatterRiksa()">
-          <option value="">Semua</option>
-        </select>
+      <div class="scatter-field" style="min-width:150px">
+        <label class="filter-label">Tanggal</label>
+        <div class="ms-scatter" id="ms-scatterRiksaTgl">
+          <div class="ms-trigger" id="ms-trigger-scatterRiksaTgl" onclick="toggleScatterMsDropdown('scatterRiksaTgl')">
+            <span class="ms-trigger-text placeholder" id="ms-text-scatterRiksaTgl">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-scatterRiksaTgl">
+            <div class="ms-actions">
+              <button onclick="scatterMsSelectAll('scatterRiksaTgl')">Pilih Semua</button>
+              <button onclick="scatterMsClearAll('scatterRiksaTgl')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-scatterRiksaTgl"></div>
+            <div class="ms-footer"><button onclick="applyScatterMsFilter('scatterRiksaTgl','Riksa')">Terapkan</button></div>
+          </div>
+        </div>
       </div>
       <div class="scatter-field" style="min-width:140px">
         <label class="filter-label">Kecamatan</label>
@@ -1586,7 +1719,10 @@ body {
         </button>
       </div>
     </div>
-    <div class="sh-title" style="margin:8px 0 4px;font-size:12px;color:#0d6efd">🔎 Pengawasan — per Username</div>
+    <div style="display:flex;align-items:center;margin:8px 0 4px">
+      <div class="sh-title" style="font-size:12px;color:#0d6efd">🔎 Pengawasan — per Username</div>
+      <button onclick="_downloadCanvasJpg(document.getElementById('scatterRiksa'),'ScatterPlot_Pengawasan_SE2026')" title="Unduh JPG" style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:600;border:none;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;cursor:pointer;opacity:.85" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.85">🖼️ JPG</button>
+    </div>
     <div style="position:relative;height:260px">
       <canvas id="scatterRiksa"></canvas>
     </div>
@@ -2208,9 +2344,25 @@ let historiUsernameData = [];   // array of { tanggal, username, user, progresPe
 function computeUsernameMetricsAsHistori(){
   if(!rawData.length) return [];
 
+  // Gunakan tanggal terbaru dari rawData jika ada kolom tanggal snapshot,
+  // supaya dropdown TGL AWAL/AKHIR tidak selalu menampilkan tanggal hari ini
   const tanggal = (()=>{
+    // Coba cari kolom tanggal di rawData (Tgl_Snapshot, Tgl, tanggal, dll)
+    const TGL_KEYS = ['Tgl_Snapshot','tgl_snapshot','TglSnapshot','Tanggal','tanggal','Tgl','tgl','Date','date'];
+    let found = null;
+    for(const k of TGL_KEYS){
+      const vals = rawData.map(r=>r[k]).filter(Boolean);
+      if(vals.length){
+        // Ambil nilai terbaru (sort desc)
+        vals.sort((a,b)=>String(b).localeCompare(String(a)));
+        found = String(vals[0]).trim().slice(0,10); // ambil YYYY-MM-DD
+        break;
+      }
+    }
+    if(found && /^\d{4}-\d{2}-\d{2}$/.test(found)) return found;
+    // Fallback: tanggal hari ini
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   })();
 
   const START_DATE = new Date('2026-06-08T00:00:00');
@@ -2369,98 +2521,74 @@ function getScatterTanggalOptions(){
 ══════════════════════════════════════ */
 
 function populateScatterTanggal() {
-  // Ambil semua tanggal unik dari historiUsernameData
   const tanggals = [...new Set(historiUsernameData.map(r => r.tanggal).filter(Boolean))].sort();
-  
-  // Isi dropdown Tgl Awal untuk Cacah
-  const elAwalCacah = document.getElementById('scatCacahTglAwal');
-  const elAkhirCacah = document.getElementById('scatCacahTglAkhir');
-  
-  if (elAwalCacah && elAkhirCacah) {
-    const prevAwalCacah = elAwalCacah.value;
-    const prevAkhirCacah = elAkhirCacah.value;
-    
-    const opts = tanggals.map(t => `<option value="${t}">${t}</option>`).join('');
-    elAwalCacah.innerHTML = '<option value="">Semua</option>' + opts;
-    elAkhirCacah.innerHTML = '<option value="">Semua</option>' + opts;
-    
-    // Kembalikan nilai sebelumnya jika masih ada
-    if (prevAwalCacah && tanggals.includes(prevAwalCacah)) {
-      elAwalCacah.value = prevAwalCacah;
-    } else if (tanggals.length > 0) {
-      // Set default ke tanggal terakhir
-      elAwalCacah.value = tanggals[0];
+
+  ['scatterCacahTgl', 'scatterRiksaTgl'].forEach(msId => {
+    const listEl = document.getElementById('ms-list-' + msId);
+    if(!listEl) return;
+    // Pertahankan seleksi yang sudah ada
+    const prev = SCATTER_MS_SELECTED[msId] || new Set();
+    listEl.innerHTML = tanggals.map(t => {
+      const checked = prev.has(t) || prev.size === 0; // default: semua terpilih
+      return '<label class="ms-item' + (checked ? ' checked' : '') + '">'
+        + '<input type="checkbox" value="' + t + '"' + (checked ? ' checked' : '') + '>'
+        + '<span>' + t + '</span>'
+        + '</label>';
+    }).join('');
+    // Update Set
+    if(prev.size === 0){
+      tanggals.forEach(t => SCATTER_MS_SELECTED[msId].add(t));
     }
-    
-    if (prevAkhirCacah && tanggals.includes(prevAkhirCacah)) {
-      elAkhirCacah.value = prevAkhirCacah;
-    } else if (tanggals.length > 0) {
-      // Set default ke tanggal terakhir
-      elAkhirCacah.value = tanggals[tanggals.length - 1];
-    }
-  }
-  
-  // Isi dropdown Tgl Awal untuk Riksa
-  const elAwalRiksa = document.getElementById('scatRiksaTglAwal');
-  const elAkhirRiksa = document.getElementById('scatRiksaTglAkhir');
-  
-  if (elAwalRiksa && elAkhirRiksa) {
-    const prevAwalRiksa = elAwalRiksa.value;
-    const prevAkhirRiksa = elAkhirRiksa.value;
-    
-    const opts = tanggals.map(t => `<option value="${t}">${t}</option>`).join('');
-    elAwalRiksa.innerHTML = '<option value="">Semua</option>' + opts;
-    elAkhirRiksa.innerHTML = '<option value="">Semua</option>' + opts;
-    
-    if (prevAwalRiksa && tanggals.includes(prevAwalRiksa)) {
-      elAwalRiksa.value = prevAwalRiksa;
-    } else if (tanggals.length > 0) {
-      elAwalRiksa.value = tanggals[0];
-    }
-    
-    if (prevAkhirRiksa && tanggals.includes(prevAkhirRiksa)) {
-      elAkhirRiksa.value = prevAkhirRiksa;
-    } else if (tanggals.length > 0) {
-      elAkhirRiksa.value = tanggals[tanggals.length - 1];
-    }
-  }
+    updateScatterMsTrigger(msId);
+  });
 }
 
 function getScatFilters(suffix){
-  const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const tglKey  = 'scatter' + suffix + 'Tgl';
+  const kecKey  = 'scatter' + suffix + 'Kec';
+  const userKey = 'scatter' + suffix + 'User';
   return {
-    tglAwal:  val(`scat${suffix}TglAwal`),
-    tglAkhir: val(`scat${suffix}TglAkhir`),
-    kec:      val(`scat${suffix}Kec`),
-    user:     val(`scat${suffix}User`)
+    tglList:  SCATTER_MS_SELECTED[tglKey]  || new Set(),
+    kecList:  SCATTER_MS_SELECTED[kecKey]  || new Set(),
+    userList: SCATTER_MS_SELECTED[userKey] || new Set()
   };
 }
 
 function getScatMetrics(userRole, filters){
   let rows = historiUsernameData.filter(r=>String(r.user||'').trim()===userRole);
-  if(filters.tglAwal)  rows = rows.filter(r=>r.tanggal >= filters.tglAwal);
-  if(filters.tglAkhir) rows = rows.filter(r=>r.tanggal <= filters.tglAkhir);
-  if(filters.kec)  rows = rows.filter(r=>(scatterKecMap[r.username]||'(Kosong)') === filters.kec);
-  if(filters.user) rows = rows.filter(r=>r.username === filters.user);
+  if(filters.tglList && filters.tglList.size > 0) rows = rows.filter(r=>filters.tglList.has(r.tanggal));
+  // Filter kecamatan dari kecList (multiselect)
+  if(filters.kecList && filters.kecList.size > 0)
+    rows = rows.filter(r=>filters.kecList.has(scatterKecMap[r.username]||'(Kosong)'));
+  // Filter username dari userList (multiselect)
+  if(filters.userList && filters.userList.size > 0)
+    rows = rows.filter(r=>filters.userList.has(r.username));
 
   // Agregat per username (rata-rata jika multi-tanggal)
   const byUser = {};
   rows.forEach(r=>{
     if(!byUser[r.username]) byUser[r.username] = { username:r.username, user:r.user, _n:0,
       progresPencacahanKemarin:0, capaianHarianPencacahan:0,
-      progresPemeriksaanKemarin:0, capaianHarianPengawasan:0 };
+      progresPemeriksaanKemarin:0, capaianHarianPengawasan:0,
+      _pctOpenSum:0, _pctOpenCount:0 };
     const b = byUser[r.username]; b._n++;
     b.progresPencacahanKemarin  += +r.progresPencacahanKemarin  || 0;
     b.capaianHarianPencacahan   += +r.capaianHarianPencacahan   || 0;
     b.progresPemeriksaanKemarin += +r.progresPemeriksaanKemarin || 0;
     b.capaianHarianPengawasan   += +r.capaianHarianPengawasan   || 0;
+    // % OPEN/Target — rata-rata dari semua tanggal yang dipilih
+    if(r.persenOpenTarget !== null && r.persenOpenTarget !== undefined && !isNaN(+r.persenOpenTarget)){
+      b._pctOpenSum   += +r.persenOpenTarget;
+      b._pctOpenCount += 1;
+    }
   });
   return Object.values(byUser).map(b=>({
     username: b.username, user: b.user,
     progresPencacahanKemarin:  b._n ? b.progresPencacahanKemarin  / b._n : null,
     capaianHarianPencacahan:   b._n ? b.capaianHarianPencacahan   / b._n : null,
     progresPemeriksaanKemarin: b._n ? b.progresPemeriksaanKemarin / b._n : null,
-    capaianHarianPengawasan:   b._n ? b.capaianHarianPengawasan   / b._n : null
+    capaianHarianPengawasan:   b._n ? b.capaianHarianPengawasan   / b._n : null,
+    persenOpenTarget: b._pctOpenCount > 0 ? b._pctOpenSum / b._pctOpenCount : null
   }));
 }
 
@@ -2609,8 +2737,15 @@ function renderScatterCacah(){
   const filters = getScatFilters('Cacah');
   let metrics = getScatMetrics('Pencacah', filters);
   if(xKey==='persenOpen'||yKey==='persenOpen'){
-    const poMap = computePersenOpenByUsername();
-    metrics = metrics.map(m=>({...m, persenOpen: poMap[m.username]??null}));
+    // Pakai persenOpenTarget dari historiUsernameData jika sudah ada (Apps Script baru)
+    // Fallback ke computePersenOpenByUsername() dari rawData jika belum ada
+    const hasFromHistori = metrics.length > 0 && metrics[0].persenOpenTarget !== undefined && metrics[0].persenOpenTarget !== null;
+    if(hasFromHistori){
+      metrics = metrics.map(m=>({...m, persenOpen: m.persenOpenTarget}));
+    } else {
+      const poMap = computePersenOpenByUsername();
+      metrics = metrics.map(m=>({...m, persenOpen: poMap[m.username]??null}));
+    }
   }
   const datasets = buildScatterDatasets(metrics, xKey, yKey);
   if(scatterCacahChart) scatterCacahChart.destroy();
@@ -2654,7 +2789,7 @@ function initScatterPlots(){
   populateScatterTanggal();  // ← TAMBAHKAN INI
   
   // Inisialisasi multi-select dropdowns
-  ['scatterCacahKec', 'scatterCacahUser', 'scatterRiksaKec', 'scatterRiksaUser'].forEach(id => {
+  ['scatterCacahTgl', 'scatterRiksaTgl', 'scatterCacahKec', 'scatterCacahUser', 'scatterRiksaKec', 'scatterRiksaUser'].forEach(id => {
     buildScatterMsList(id);
     updateScatterMsTrigger(id);
   });
@@ -2667,6 +2802,12 @@ function initScatterPlots(){
 
 // State untuk scatter multi-select
 const SCATTER_MS_SELECTED = {
+  // Tren Harian — per grafik
+  trenProgresKec:  new Set(), trenProgresUser:  new Set(),
+  trenCapaianKec:  new Set(), trenCapaianUser:  new Set(),
+  trenOpenKec:     new Set(), trenOpenUser:     new Set(),
+  scatterCacahTgl: new Set(),
+  scatterRiksaTgl: new Set(),
   scatterCacahKec: new Set(),
   scatterCacahUser: new Set(),
   scatterRiksaKec: new Set(),
@@ -2713,8 +2854,30 @@ function buildScatterMsList(id) {
   const sel = SCATTER_MS_SELECTED[id];
   
   let options = [];
-  
-  if (id === 'scatterCacahKec' || id === 'scatterRiksaKec') {
+
+  // ── Tren per-grafik: Kecamatan ──
+  if (id === 'trenProgresKec' || id === 'trenCapaianKec' || id === 'trenOpenKec') {
+    options = [...new Set(Object.values(scatterKecMap).filter(Boolean))].sort();
+    // default: semua kosong = Kabupaten
+  } else if (id === 'trenProgresUser' || id === 'trenOpenUser') {
+    // Pencacah, filter kecamatan dari chart yg sama
+    const kecId = id.replace('User','Kec');
+    const selKec = SCATTER_MS_SELECTED[kecId];
+    let users = [...new Set(historiUsernameData.filter(r=>String(r.user||'').trim()==='Pencacah').map(r=>r.username))].sort();
+    if(selKec.size > 0) users = users.filter(u=>selKec.has(scatterKecMap[u]||'(Kosong)'));
+    options = users;
+  } else if (id === 'trenCapaianUser') {
+    // Pengawas
+    const selKec = SCATTER_MS_SELECTED.trenCapaianKec;
+    let users = [...new Set(historiUsernameData.filter(r=>String(r.user||'').trim()==='Pengawas').map(r=>r.username))].sort();
+    if(selKec.size > 0) users = users.filter(u=>selKec.has(scatterKecMap[u]||'(Kosong)'));
+    options = users;
+  // ── Tanggal: ambil dari historiUsernameData ──
+  } else if (id === 'scatterCacahTgl' || id === 'scatterRiksaTgl') {
+    options = [...new Set(historiUsernameData.map(r => r.tanggal).filter(Boolean))].sort();
+    // Default: semua terpilih jika Set masih kosong
+    if(sel.size === 0) options.forEach(t => sel.add(t));
+  } else if (id === 'scatterCacahKec' || id === 'scatterRiksaKec') {
     // Ambil kecamatan dari scatterKecMap
     const userRole = id === 'scatterCacahKec' ? 'Pencacah' : 'Pengawas';
     const usersInRole = new Set(
@@ -2828,6 +2991,16 @@ function updateScatterMsTrigger(id) {
 }
 
 function applyScatterMsFilter(id, suffix) {
+  // Update Set dari checkboxes DULU sebelum dropdown ditutup
+  // (untuk Tgl, Kec, User — semua butuh ini)
+  const items = document.querySelectorAll('#ms-list-' + id + ' input[type=checkbox]');
+  SCATTER_MS_SELECTED[id].clear();
+  items.forEach(cb => {
+    if(cb.checked) SCATTER_MS_SELECTED[id].add(cb.value);
+    const lbl = cb.closest('label');
+    if(lbl) lbl.classList.toggle('checked', cb.checked);
+  });
+
   closeScatterMsDropdown(id);
   updateScatterMsTrigger(id);
   
@@ -2872,7 +3045,7 @@ function applyScatterMsFilter(id, suffix) {
     updateScatterMsTrigger('scatterRiksaUser');
     renderScatterRiksa();
   } else {
-    // Jika yang diubah adalah Username, render ulang scatter
+    // Tgl atau Username — langsung render
     if (suffix === 'Cacah') renderScatterCacah();
     else if (suffix === 'Riksa') renderScatterRiksa();
   }
@@ -2890,12 +3063,12 @@ function resetScatterFilters(suffix) {
     updateScatterMsTrigger('scatterCacahUser');
     buildScatterMsList('scatterCacahUser');
     
-    // Reset tanggal
-    const elAwal = document.getElementById('scatCacahTglAwal');
-    const elAkhir = document.getElementById('scatCacahTglAkhir');
-    if (elAwal) elAwal.value = '';
-    if (elAkhir) elAkhir.value = '';
-    
+    // Reset tanggal — pilih semua tanggal kembali
+    const tanggalsCacah = [...new Set(historiUsernameData.map(r=>r.tanggal).filter(Boolean))].sort();
+    SCATTER_MS_SELECTED.scatterCacahTgl = new Set(tanggalsCacah);
+    populateScatterTanggal();
+    updateScatterMsTrigger('scatterCacahTgl');
+
     renderScatterCacah();
   } else if (suffix === 'Riksa') {
     // Reset kecamatan
@@ -2908,12 +3081,12 @@ function resetScatterFilters(suffix) {
     updateScatterMsTrigger('scatterRiksaUser');
     buildScatterMsList('scatterRiksaUser');
     
-    // Reset tanggal
-    const elAwal = document.getElementById('scatRiksaTglAwal');
-    const elAkhir = document.getElementById('scatRiksaTglAkhir');
-    if (elAwal) elAwal.value = '';
-    if (elAkhir) elAkhir.value = '';
-    
+    // Reset tanggal — pilih semua tanggal kembali
+    const tanggalsRiksa = [...new Set(historiUsernameData.map(r=>r.tanggal).filter(Boolean))].sort();
+    SCATTER_MS_SELECTED.scatterRiksaTgl = new Set(tanggalsRiksa);
+    populateScatterTanggal();
+    updateScatterMsTrigger('scatterRiksaTgl');
+
     renderScatterRiksa();
   }
 }
@@ -2956,8 +3129,7 @@ function getScatFilters(suffix) {
 function getScatMetrics(userRole, filters) {
   let rows = historiUsernameData.filter(r => String(r.user || '').trim() === userRole);
   
-  if (filters.tglAwal) rows = rows.filter(r => r.tanggal >= filters.tglAwal);
-  if (filters.tglAkhir) rows = rows.filter(r => r.tanggal <= filters.tglAkhir);
+  if(filters.tglList && filters.tglList.size > 0) rows = rows.filter(r=>filters.tglList.has(r.tanggal));
   
   // Filter kecamatan (multi-select)
   if (filters.kecList && filters.kecList.length > 0) {
@@ -3000,23 +3172,312 @@ function getScatMetrics(userRole, filters) {
 ══════════════════════════════════════ */
 let trendProgresChart = null, trendCapaianChart = null, trendOpenChart = null;
 
+
+function loadHistoriUsernameCSV(){
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/15APeClzRRvUOBaOSTT5jbA1d-fvBHMtq7Xel_Qor7H8/export?format=csv&gid=1891856912';
+  fetch(CSV_URL)
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function(csvText){
+      // Parse CSV — header di baris pertama
+      const lines  = csvText.trim().split('\n');
+      const header = lines[0].split(',').map(function(h){ return h.replace(/^"|"$/g,'').trim(); });
+
+      // Mapping nama kolom (case-insensitive, fleksibel)
+      function findCol(pat){
+        return header.findIndex(function(h){ return pat.test(h); });
+      }
+      const iDate  = findCol(/tanggal/i);
+      const iUname = findCol(/username/i);
+      const iUser  = findCol(/^user$/i) !== -1 ? findCol(/^user$/i) : findCol(/\buser\b/i);
+      const iPCK   = findCol(/progres.{0,6}pencacahan.{0,10}kemarin/i);
+      const iCHC   = findCol(/capaian.{0,6}harian.{0,10}pencacahan/i);
+      const iPRK   = findCol(/progres.{0,6}pemer/i);
+      const iCHP   = findCol(/capaian.{0,6}harian.{0,10}pengawasan/i);
+
+      console.log('[HistoriCSV] header:', header);
+      console.log('[HistoriCSV] col indices — tanggal:', iDate, 'username:', iUname, 'user:', iUser,
+        'progCacah:', iPCK, 'capCacah:', iCHC, 'progRiksa:', iPRK, 'capRiksa:', iCHP);
+
+      // Parse baris data
+      var parsed = [];
+      for(var i = 1; i < lines.length; i++){
+        var line = lines[i].trim();
+        if(!line) continue;
+        // Split CSV sederhana (handle quoted fields)
+        var cols = [];
+        var cur = ''; var inQ = false;
+        for(var ci = 0; ci < line.length; ci++){
+          var ch = line[ci];
+          if(ch === '"'){ inQ = !inQ; }
+          else if(ch === ',' && !inQ){ cols.push(cur.trim()); cur = ''; }
+          else { cur += ch; }
+        }
+        cols.push(cur.trim());
+
+        var tgl   = iDate  >= 0 ? (cols[iDate]  || '').replace(/"/g,'').trim() : '';
+        var uname = iUname >= 0 ? (cols[iUname] || '').replace(/"/g,'').trim() : '';
+        var user  = iUser  >= 0 ? (cols[iUser]  || '').replace(/"/g,'').trim() : '';
+        if(!tgl || !uname) continue;
+
+        function parseNum(idx){
+          if(idx < 0 || idx >= cols.length) return null;
+          var v = parseFloat((cols[idx]||'').replace(/"/g,'').replace(',','.'));
+          return isNaN(v) ? null : v;
+        }
+
+        // Normalisasi format tanggal → YYYY-MM-DD
+        // Handle: DD/MM/YYYY, YYYY-MM-DD, DD-MM-YYYY
+        if(/^\d{2}\/\d{2}\/\d{4}$/.test(tgl)){
+          var p = tgl.split('/');
+          tgl = p[2] + '-' + p[1] + '-' + p[0];
+        } else if(/^\d{2}-\d{2}-\d{4}$/.test(tgl)){
+          var p = tgl.split('-');
+          tgl = p[2] + '-' + p[1] + '-' + p[0];
+        }
+
+        var iPctOpen = findCol(/% open.{0,10}target/i);
+        parsed.push({
+          tanggal                   : tgl,
+          username                  : uname,
+          user                      : user,
+          progresPencacahanKemarin  : parseNum(iPCK),
+          capaianHarianPencacahan   : parseNum(iCHC),
+          progresPemeriksaanKemarin : parseNum(iPRK),
+          capaianHarianPengawasan   : parseNum(iCHP),
+          persenOpenTarget          : parseNum(iPctOpen)
+        });
+      }
+
+      console.log('[HistoriCSV] parsed:', parsed.length, 'rows | tanggal unik:',
+        [...new Set(parsed.map(function(r){ return r.tanggal; }))].sort().join(', '));
+
+      if(parsed.length > 0){
+        historiUsernameData = parsed;
+        populateScatterTanggal();
+        renderScatterCacah();
+        renderScatterRiksa();
+        initTrenFilters();
+      } else if(rawData.length){
+        // Fallback jika CSV kosong / gagal parse
+        historiUsernameData = computeUsernameMetricsAsHistori();
+        populateScatterTanggal();
+        renderScatterCacah();
+        renderScatterRiksa();
+      }
+    })
+    .catch(function(err){
+      console.warn('[HistoriCSV] Gagal fetch CSV:', err);
+      // Fallback ke komputasi dari rawData
+      if(rawData.length){
+        historiUsernameData = computeUsernameMetricsAsHistori();
+        populateScatterTanggal();
+        renderScatterCacah();
+        renderScatterRiksa();
+      }
+    });
+}
+
+
+// ── Data histori harian kabupaten ──
+let historiHarianData = [];
+
+const TREN_COLORS = [
+  '#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6',
+  '#ec4899','#14b8a6','#f97316','#6366f1','#84cc16',
+  '#0ea5e9','#a855f7','#10b981','#fb923c','#e11d48'
+];
+function getTrenColor(i){ return TREN_COLORS[i % TREN_COLORS.length]; }
+
+// Inisialisasi filter tiap grafik tren
+function initTrenFilters(){
+  ['trenProgresKec','trenProgresUser','trenCapaianKec','trenCapaianUser','trenOpenKec','trenOpenUser']
+    .forEach(id => { buildScatterMsList(id); updateScatterMsTrigger(id); });
+}
+
+// Terapkan filter untuk satu chart (chartId: Progres/Capaian/Open)
+function applyTrenChartFilter(chartId){
+  const kecId  = 'tren' + chartId + 'Kec';
+  const userId = 'tren' + chartId + 'User';
+
+  // Baca checkbox kecamatan
+  const kecItems = document.querySelectorAll('#ms-list-' + kecId + ' input[type=checkbox]');
+  SCATTER_MS_SELECTED[kecId].clear();
+  kecItems.forEach(cb => {
+    if(cb.checked) SCATTER_MS_SELECTED[kecId].add(cb.value);
+    const lbl = cb.closest('label'); if(lbl) lbl.classList.toggle('checked', cb.checked);
+  });
+  closeScatterMsDropdown(kecId);
+  updateScatterMsTrigger(kecId);
+
+  // Baca checkbox user
+  const userItems = document.querySelectorAll('#ms-list-' + userId + ' input[type=checkbox]');
+  SCATTER_MS_SELECTED[userId].clear();
+  userItems.forEach(cb => {
+    if(cb.checked) SCATTER_MS_SELECTED[userId].add(cb.value);
+    const lbl = cb.closest('label'); if(lbl) lbl.classList.toggle('checked', cb.checked);
+  });
+  closeScatterMsDropdown(userId);
+  updateScatterMsTrigger(userId);
+
+  // Re-build user list kalau kecamatan berubah
+  buildScatterMsList(userId);
+  updateScatterMsTrigger(userId);
+
+  // Render hanya chart yang bersangkutan
+  renderTrenChart(chartId);
+}
+
+function resetTrenChartFilter(chartId){
+  const kecId  = 'tren' + chartId + 'Kec';
+  const userId = 'tren' + chartId + 'User';
+  SCATTER_MS_SELECTED[kecId].clear();
+  SCATTER_MS_SELECTED[userId].clear();
+  buildScatterMsList(kecId);  updateScatterMsTrigger(kecId);
+  buildScatterMsList(userId); updateScatterMsTrigger(userId);
+  renderTrenChart(chartId);
+}
+
+// Helper: buat labels sumbu X + padding null masa depan
+function makeTrenLabels(tanggals){
+  const labels = tanggals.map(t => new Date(t+'T00:00:00').toLocaleDateString('id-ID',{day:'2-digit',month:'short'}));
+  const lastDate = tanggals.length ? new Date(tanggals[tanggals.length-1]+'T00:00:00') : new Date();
+  for(let i=1;i<=7;i++){
+    const fd = new Date(lastDate); fd.setDate(fd.getDate()+i);
+    labels.push(fd.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}));
+  }
+  return labels;
+}
+function padN(arr){ return arr.concat(Array(7).fill(null)); }
+
+// Render satu chart tren (chartId: Progres/Capaian/Open)
+function renderTrenChart(chartId){
+  const kecSel  = SCATTER_MS_SELECTED['tren' + chartId + 'Kec'];
+  const userSel = SCATTER_MS_SELECTED['tren' + chartId + 'User'];
+  const hasFilter = kecSel.size > 0 || userSel.size > 0;
+
+  const canvasMap   = { Progres:'trendProgres', Capaian:'trendCapaian', Open:'trendOpen' };
+  const chartVarMap = { Progres:'trendProgresChart', Capaian:'trendCapaianChart', Open:'trendOpenChart' };
+  const chartVar    = { Progres:trendProgresChart, Capaian:trendCapaianChart, Open:trendOpenChart };
+  const setterMap   = {
+    Progres: c => { trendProgresChart = c; },
+    Capaian: c => { trendCapaianChart = c; },
+    Open:    c => { trendOpenChart = c; }
+  };
+
+  if(!hasFilter){
+    // Mode kabupaten — pakai historiHarianData
+    if(!historiHarianData.length) return;
+    const data   = historiHarianData;
+    const labels = makeTrenLabels(data.map(d=>d.tanggal));
+
+    const seriesMap = {
+      Progres: [
+        { label:'Progres Pencacahan Kemarin',    data:padN(data.map(d=>numOrNull(d.progresPencacahanKemarin))),  color:'#3b82f6' },
+        { label:'Rata-rata Capaian Pencacahan',  data:padN(data.map(d=>numOrNull(d.rataCapaianPencacahan))),    color:'#f59e0b' }
+      ],
+      Capaian: [
+        { label:'Progres Pemeriksaan Kemarin',   data:padN(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#22c55e' },
+        { label:'Rata-rata Capaian Pemeriksaan', data:padN(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))),   color:'#8b5cf6' }
+      ],
+      Open: [
+        { label:'Total % OPEN/Target', data:padN(data.map(d=>numOrNull(d.totalPersenOpen))), color:'#ef4444' }
+      ]
+    };
+    const titleMap = { Progres:'Pencacahan', Capaian:'Pemeriksaan', Open:'Total % OPEN/Target' };
+    renderTrendChart(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, seriesMap[chartId], titleMap[chartId]);
+    return;
+  }
+
+  // Mode filter: rata-rata per-tanggal dari username yang dipilih
+  if(!historiUsernameData.length) return;
+  const tanggals = [...new Set(historiUsernameData.map(r=>r.tanggal).filter(Boolean))].sort();
+  const labels   = makeTrenLabels(tanggals);
+
+  // Tentukan role dan field berdasarkan chartId
+  const roleMap   = { Progres:'Pencacah', Capaian:'Pengawas', Open:'Pencacah' };
+  const fieldsMap = {
+    Progres: ['progresPencacahanKemarin','capaianHarianPencacahan'],
+    Capaian: ['progresPemeriksaanKemarin','capaianHarianPengawasan'],
+    Open:    ['persenOpenTarget']
+  };
+  const labelMap  = {
+    progresPencacahanKemarin:  'Progres Pencacahan Kemarin',
+    progresPemeriksaanKemarin: 'Progres Pemeriksaan Kemarin',
+    capaianHarianPencacahan:   'Rata-rata Capaian Pencacahan',
+    capaianHarianPengawasan:   'Rata-rata Capaian Pemeriksaan',
+    persenOpenTarget:          '% OPEN/Target'
+  };
+  const colorMap  = {
+    progresPencacahanKemarin:'#3b82f6',  capaianHarianPencacahan:'#f59e0b',
+    progresPemeriksaanKemarin:'#22c55e', capaianHarianPengawasan:'#8b5cf6',
+    persenOpenTarget:'#ef4444'
+  };
+  const titleMap2 = { Progres:'Pencacahan (Filter)', Capaian:'Pemeriksaan (Filter)', Open:'% OPEN/Target (Filter)' };
+
+  const role    = roleMap[chartId];
+  const fields  = fieldsMap[chartId];
+
+  // Filter rows sesuai kec+user
+  let rows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
+  if(kecSel.size  > 0) rows = rows.filter(r => kecSel.has(scatterKecMap[r.username]||'(Kosong)'));
+  if(userSel.size > 0) rows = rows.filter(r => userSel.has(r.username));
+
+  // Rata-rata per tanggal per field
+  const series = fields.map((field, fi) => {
+    const byTgl = {};
+    const cntTgl = {};
+    rows.forEach(r => {
+      const v = numOrNull(r[field]);
+      if(v === null) return;
+      byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
+      cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
+    });
+    return {
+      label: labelMap[field],
+      data:  padN(tanggals.map(t => cntTgl[t] ? +(byTgl[t]/cntTgl[t]).toFixed(2) : null)),
+      color: colorMap[field]
+    };
+  });
+
+  renderTrendChart(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, series, titleMap2[chartId]);
+}
+
+// Render semua tiga chart tren sekaligus
+function renderTrenHarian(){
+  renderTrenChart('Progres');
+  renderTrenChart('Capaian');
+  renderTrenChart('Open');
+}
+
+// Stub lama agar tidak error jika dipanggil dari tempat lain
+function applyTrenFilter(){ renderTrenHarian(); }
+function resetTrenFilter(){
+  ['trenProgresKec','trenProgresUser','trenCapaianKec','trenCapaianUser','trenOpenKec','trenOpenUser']
+    .forEach(id => { SCATTER_MS_SELECTED[id].clear(); buildScatterMsList(id); updateScatterMsTrigger(id); });
+  renderTrenHarian();
+}
+function _renderTrenKabupaten(){ renderTrenHarian(); }
+
+
 function loadHistoriHarian(){
   if(typeof Chart === 'undefined') return;
   fetch(HISTORI_API_URL)
     .then(r => r.json())
     .then(res => {
       // Simpan data username ke variabel global untuk scatter plot
+      // Coba pakai data dari Apps Script dulu (res.username)
       if(res.ok && Array.isArray(res.username) && res.username.length > 0){
-        // Apps Script versi baru — pakai data dari sheet "Histori Username"
         historiUsernameData = res.username;
-      } else if(rawData.length){
-        // Fallback: Apps Script versi lama belum mengembalikan res.username
-        // Hitung dari rawData dan bungkus dengan tanggal hari ini
-        historiUsernameData = computeUsernameMetricsAsHistori();
-      }
-      if(historiUsernameData.length){
+        populateScatterTanggal();
         renderScatterCacah();
         renderScatterRiksa();
+        initTrenFilters();
+      } else {
+        // Fallback: fetch langsung dari CSV Google Sheets
+        loadHistoriUsernameCSV();
       }
 
       const harian = res.harian || res.data || [];
@@ -3049,19 +3510,8 @@ function loadHistoriHarian(){
       }
       const padNulls = arr => arr.concat(Array(FUTURE_DAYS).fill(null));
 
-      renderTrendChart('trendProgres', trendProgresChart, c => trendProgresChart = c, labels, [
-        { label:'Progres Pencacahan Kemarin', data: padNulls(data.map(d=>numOrNull(d.progresPencacahanKemarin))), color:'#3b82f6' },
-        { label:'Progres Pemeriksaan Kemarin', data: padNulls(data.map(d=>numOrNull(d.progresPemeriksaanKemarin))), color:'#22c55e' }
-      ], 'Progres Kemarin');
-
-      renderTrendChart('trendCapaian', trendCapaianChart, c => trendCapaianChart = c, labels, [
-        { label:'Rata-rata Capaian Pencacahan', data: padNulls(data.map(d=>numOrNull(d.rataCapaianPencacahan))), color:'#f59e0b' },
-        { label:'Rata-rata Capaian Pemeriksaan', data: padNulls(data.map(d=>numOrNull(d.rataCapaianPemeriksaan))), color:'#8b5cf6' }
-      ], 'Rata-rata Capaian Harian');
-
-      renderTrendChart('trendOpen', trendOpenChart, c => trendOpenChart = c, labels, [
-        { label:'Total % OPEN/Target', data: padNulls(data.map(d=>numOrNull(d.totalPersenOpen))), color:'#ef4444' }
-      ], 'Total % OPEN/Target');
+      historiHarianData = data;
+      renderTrenHarian();
     })
     .catch(err=>{
       console.warn('Gagal memuat histori harian:', err);
@@ -3081,32 +3531,128 @@ function renderTrendChart(canvasId, existingChart, setChart, labels, series, tit
   const canvas = document.getElementById(canvasId);
   if(!canvas) return;
   if(existingChart) existingChart.destroy();
+
+  // Series pertama → axis kiri (yL), series kedua → axis kanan (yR)
+  // Keduanya pakai stepped line dengan dual axis
+  const datasets = series.map((s, i) => ({
+    label     : s.label,
+    data      : s.data,
+    borderColor     : s.color,
+    backgroundColor : s.color + '22',
+    stepped   : 'before',        // stepped line
+    fill      : true,
+    spanGaps  : true,
+    borderWidth     : 2,
+    pointRadius     : 3,
+    pointHoverRadius: 6,
+    pointBackgroundColor: s.color,
+    borderDash  : i === 1 ? [5, 3] : [],   // series ke-2 pakai dash agar bisa dibedakan selain warna
+    yAxisID   : i === 0 ? 'yL' : 'yR'
+  }));
+
+  // Hitung range tiap axis supaya tidak overlap
+  const valsL = series[0]?.data.filter(v => v !== null) || [];
+  const valsR = series[1]?.data.filter(v => v !== null) || [];
+  const maxL  = valsL.length ? Math.max(...valsL) : 10;
+  const maxR  = valsR.length ? Math.max(...valsR) : 10;
+
   const chart = new Chart(canvas.getContext('2d'), {
     type: 'line',
-    data: {
-      labels,
-      datasets: series.map(s => ({
-        label: s.label,
-        data: s.data,
-        borderColor: s.color,
-        backgroundColor: s.color + '33',
-        tension: 0.25,
-        spanGaps: true,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      }))
-    },
+    data: { labels, datasets },
     options: {
-      responsive: true,
+      responsive       : true,
       maintainAspectRatio: false,
+      interaction      : { mode:'index', intersect:false },
       plugins: {
-        title: { display:true, text:title, font:{size:12, weight:'bold'} },
-        legend: { display: series.length > 1, position:'bottom', labels:{boxWidth:10, font:{size:10}} }
+        title: {
+          display : true,
+          text    : title,
+          font    : { size:12, weight:'600', family:"'Inter',sans-serif" },
+          color   : '#1e293b',
+          padding : { bottom:8 }
+        },
+        legend: {
+          display  : series.length > 1,
+          position : 'bottom',
+          labels   : {
+            boxWidth     : 12,
+            boxHeight    : 2,
+            font         : { size:10 },
+            usePointStyle: false,
+            generateLabels(chart){
+              return chart.data.datasets.map((ds, i) => ({
+                text       : ds.label,
+                fillStyle  : ds.borderColor,
+                strokeStyle: ds.borderColor,
+                lineWidth  : 2,
+                hidden     : false,
+                datasetIndex: i
+              }));
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label(ctx){
+              const val = ctx.parsed.y;
+              if(val === null || val === undefined) return null;
+              const isRight = ctx.datasetIndex === 1;
+              const fmt = isRight
+                ? val.toLocaleString('id-ID', {minimumFractionDigits:1, maximumFractionDigits:1})
+                : val.toLocaleString('id-ID');
+              return ' ' + ctx.dataset.label + ': ' + fmt;
+            }
+          }
+        }
       },
       scales: {
-        x: { ticks:{font:{size:10}} },
-        y: { ticks:{font:{size:10}}, beginAtZero:true }
-      }
+        x: {
+          grid : { color:'rgba(226,232,240,.5)', lineWidth:1 },
+          ticks: { font:{size:9}, color:'#94a3b8', maxRotation:0, autoSkip:true, maxTicksLimit:8 },
+          border: { dash:[3,3], color:'transparent' }
+        },
+        yL: {
+          type    : 'linear',
+          position: 'left',
+          beginAtZero: true,
+          suggestedMax: maxL * 1.15,
+          grid : { color:'rgba(226,232,240,.5)', lineWidth:1 },
+          ticks: {
+            font    : { size:9 },
+            color   : series[0]?.color || '#3b82f6',
+            callback: v => v.toLocaleString('id-ID')
+          },
+          border: { dash:[3,3], color:'transparent' },
+          title : series.length > 1 ? {
+            display: true,
+            text   : series[0]?.label || '',
+            font   : { size:9 },
+            color  : series[0]?.color || '#3b82f6',
+            padding: 0
+          } : { display:false }
+        },
+        yR: {
+          type    : 'linear',
+          position: 'right',
+          display : series.length > 1,
+          beginAtZero: true,
+          suggestedMax: maxR * 1.15,
+          grid : { display:false },
+          ticks: {
+            font    : { size:9 },
+            color   : series[1]?.color || '#f59e0b',
+            callback: v => v.toLocaleString('id-ID', {minimumFractionDigits:1, maximumFractionDigits:1})
+          },
+          title : series.length > 1 ? {
+            display: true,
+            text   : series[1]?.label || '',
+            font   : { size:9 },
+            color  : series[1]?.color || '#f59e0b',
+            padding: 0
+          } : { display:false }
+        }
+      },
+      animation: { duration:400, easing:'easeOutQuart' }
     }
   });
   setChart(chart);
@@ -4214,18 +4760,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const sm = document.getElementById('pvSortMode');
   if(sm) sm.addEventListener('change', ()=>{ pvSort={col:null,dir:'desc'}; renderPivot(); });
   
-  // ===== TAMBAHKAN INI =====
-  // Event listener untuk perubahan tanggal di scatter plot
-  const elCacahAwal = document.getElementById('scatCacahTglAwal');
-  const elCacahAkhir = document.getElementById('scatCacahTglAkhir');
-  const elRiksaAwal = document.getElementById('scatRiksaTglAwal');
-  const elRiksaAkhir = document.getElementById('scatRiksaTglAkhir');
-  
-  if (elCacahAwal) elCacahAwal.addEventListener('change', renderScatterCacah);
-  if (elCacahAkhir) elCacahAkhir.addEventListener('change', renderScatterCacah);
-  if (elRiksaAwal) elRiksaAwal.addEventListener('change', renderScatterRiksa);
-  if (elRiksaAkhir) elRiksaAkhir.addEventListener('change', renderScatterRiksa);
-  // ===== SAMPAI SINI =====
+  // Event listener tanggal sudah di-handle via multiselect applyScatterMsFilter
 });
 function resetPivot(){
   pvSort = { col: null, dir: 'desc' };
@@ -5027,13 +5562,13 @@ function printStackedBar(which){
 }
 
 function downloadChartJpg(which){
-  var isChart1 = which === 1;
-  var srcCanvas = document.getElementById(isChart1 ? 'sbChart' : 'sb2Chart');
-  var legendEl  = document.getElementById(isChart1 ? 'sbLegend' : 'sb2Legend');
+  // Wrapper untuk tombol JPG stacked bar (which=1 atau 2)
+  const isChart1  = which === 1;
+  const srcCanvas = document.getElementById(isChart1 ? 'sbChart' : 'sb2Chart');
+  const legendEl  = document.getElementById(isChart1 ? 'sbLegend' : 'sb2Legend');
+  const judul     = isChart1 ? 'Distribusi_per_Wilayah' : 'Distribusi_per_Petugas';
   if(!srcCanvas){ alert('Canvas tidak ditemukan.'); return; }
-  var judul = isChart1 ? 'Distribusi_per_Wilayah' : 'Distribusi_per_Petugas';
 
-  // Parse legend items langsung dari DOM
   var legendItems = [];
   if(legendEl){
     legendEl.querySelectorAll('span[style]').forEach(function(span){
@@ -5052,80 +5587,75 @@ function downloadChartJpg(which){
       }
     });
   }
+  _downloadCanvasJpg(srcCanvas, judul + '_SE2026', legendItems);
+}
 
-  var COLS     = 3;
-  var ITEM_W   = Math.max(280, Math.floor(srcCanvas.width / COLS));
-  var ITEM_H   = 28;
-  var PAD      = 20;
-  var ROWS     = Math.ceil(legendItems.length / COLS);
-  var LEGEND_H = legendItems.length > 0 ? ROWS * ITEM_H + PAD * 2 + 14 : 0;
+/**
+ * Fungsi universal download JPG — aman, tidak trigger reload.
+ * Pakai toBlob + URL.createObjectURL (bukan data URL panjang).
+ * @param {HTMLCanvasElement} srcCanvas  canvas sumber
+ * @param {string}            filename   nama file tanpa ekstensi
+ * @param {Array}             legendItems opsional [{color,name,cnt,pct}]
+ */
+function _downloadCanvasJpg(srcCanvas, filename, legendItems){
+  legendItems = legendItems || [];
 
-  // Langsung gambar dari canvas ke canvas — TANPA new Image() untuk hindari reload
+  var COLS    = 3;
+  var ITEM_W  = Math.max(260, Math.floor(srcCanvas.width / COLS));
+  var ITEM_H  = 28;
+  var PAD     = 20;
+  var ROWS    = Math.ceil(legendItems.length / COLS);
+  var LEG_H   = legendItems.length > 0 ? ROWS * ITEM_H + PAD * 2 + 14 : 0;
+
   var tmp  = document.createElement('canvas');
   tmp.width  = Math.max(srcCanvas.width, COLS * ITEM_W + PAD * 2);
-  tmp.height = srcCanvas.height + LEGEND_H;
-  var tCtx = tmp.getContext('2d');
+  tmp.height = srcCanvas.height + LEG_H;
+  var ctx  = tmp.getContext('2d');
 
   // Background putih
-  tCtx.fillStyle = '#ffffff';
-  tCtx.fillRect(0, 0, tmp.width, tmp.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, tmp.width, tmp.height);
 
-  // Gambar chart langsung dari canvas sumber (tidak perlu Image())
-  tCtx.drawImage(srcCanvas, 0, 0);
+  // Gambar chart langsung (drawImage dari canvas — tidak perlu new Image())
+  ctx.drawImage(srcCanvas, 0, 0);
 
-  // Gambar legend strip
+  // Gambar legend
   if(legendItems.length > 0){
-    var sepY = srcCanvas.height + 8;
-    tCtx.strokeStyle = '#e2e8f0';
-    tCtx.lineWidth = 1;
-    tCtx.beginPath();
-    tCtx.moveTo(PAD, sepY);
-    tCtx.lineTo(tmp.width - PAD, sepY);
-    tCtx.stroke();
-
-    tCtx.font = 'bold 11px Arial';
-    tCtx.fillStyle = '#64748b';
-    tCtx.fillText('Keterangan:', PAD, srcCanvas.height + PAD + 2);
-
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD, srcCanvas.height + 8);
+    ctx.lineTo(tmp.width - PAD, srcCanvas.height + 8);
+    ctx.stroke();
+    ctx.font = 'bold 11px Arial'; ctx.fillStyle = '#64748b';
+    ctx.fillText('Keterangan:', PAD, srcCanvas.height + PAD + 2);
     var startY = srcCanvas.height + PAD + 18;
     legendItems.forEach(function(item, i){
-      var col = i % COLS;
-      var row = Math.floor(i / COLS);
-      var x   = PAD + col * ITEM_W;
-      var y   = startY + row * ITEM_H;
-
-      // Kotak warna
-      tCtx.fillStyle = item.color;
-      tCtx.beginPath();
-      if(tCtx.roundRect){
-        tCtx.roundRect(x, y - 9, 13, 13, 3);
-      } else {
-        tCtx.rect(x, y - 9, 13, 13);
-      }
-      tCtx.fill();
-
-      // Teks
-      tCtx.font = 'bold 10px Arial';
-      tCtx.fillStyle = '#1e293b';
-      var label = item.name;
-      if(item.cnt) label += '   ' + item.cnt;
-      if(item.pct) label += '   ' + item.pct;
-      tCtx.fillText(label, x + 18, y + 1);
+      var col = i % COLS, row = Math.floor(i / COLS);
+      var x = PAD + col * ITEM_W, y = startY + row * ITEM_H;
+      ctx.fillStyle = item.color;
+      ctx.beginPath();
+      if(ctx.roundRect) ctx.roundRect(x, y - 9, 13, 13, 3);
+      else ctx.rect(x, y - 9, 13, 13);
+      ctx.fill();
+      ctx.font = 'bold 10px Arial'; ctx.fillStyle = '#1e293b';
+      var lbl = item.name + (item.cnt ? '   ' + item.cnt : '') + (item.pct ? '   ' + item.pct : '');
+      ctx.fillText(lbl, x + 18, y + 1);
     });
   }
 
-  // Download — pakai URL.createObjectURL supaya tidak ada navigasi sama sekali
+  // Download via Blob + createObjectURL — tidak ada navigasi, tidak reload
   tmp.toBlob(function(blob){
     var url  = URL.createObjectURL(blob);
     var link = document.createElement('a');
     link.href     = url;
-    link.download = judul + '_SE2026.jpg';
+    link.download = filename.replace(/[^a-zA-Z0-9_\-]/g, '_') + '.jpg';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
   }, 'image/jpeg', 0.95);
 }
+
 
 function _openPrintWindow(judul, subJudul, cntText, legendHTML, nowStr, nowDate, combinedPng, combinedJpg){
   var pw = window.open('', '_blank', 'width=1140,height=860');
