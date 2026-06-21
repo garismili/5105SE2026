@@ -348,6 +348,71 @@ body {
 .pivot-table tr.sls-parent-row td.row-label { cursor: pointer; }
 .pivot-status { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .pivot-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.petugas-link {
+  cursor: pointer;
+  color: #1e40af;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  transition: color .15s;
+}
+.petugas-link:hover { color: #2563eb; }
+
+/* Popup profil petugas */
+#petugasPopup {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.08);
+  min-width: 300px;
+  max-width: 380px;
+  overflow: hidden;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  animation: popupFadeIn .15s ease;
+}
+@keyframes popupFadeIn {
+  from { opacity:0; transform:scale(.97) translateY(-4px); }
+  to   { opacity:1; transform:scale(1)  translateY(0); }
+}
+#petugasPopup .pp-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f4c81 100%);
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#petugasPopup .pp-avatar {
+  width: 42px; height: 42px;
+  background: rgba(255,255,255,.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+#petugasPopup .pp-name  { font-size: 14px; font-weight: 700; color: #fff; }
+#petugasPopup .pp-role  { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 2px; }
+#petugasPopup .pp-body  { padding: 12px 16px; }
+#petugasPopup .pp-row   {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px;
+}
+#petugasPopup .pp-row:last-child { border-bottom: none; }
+#petugasPopup .pp-key   { color: #64748b; min-width: 110px; flex-shrink: 0; font-size: 11px; }
+#petugasPopup .pp-val   { color: #1e293b; font-weight: 500; word-break: break-word; }
+#petugasPopup .pp-wa    {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #25d366; color: #fff; font-weight: 600; font-size: 12px;
+  padding: 4px 12px; border-radius: 20px; text-decoration: none;
+  margin-top: 2px; transition: opacity .15s;
+}
+#petugasPopup .pp-wa:hover { opacity: .88; }
+#petugasPopup .pp-close {
+  position: absolute; top: 10px; right: 12px;
+  background: rgba(255,255,255,.15); border: none; color: #fff;
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+#petugasPopup .pp-close:hover { background: rgba(255,255,255,.3); }
 
 /* sort indicators on pivot headers */
 .pivot-table thead th.sortable {
@@ -1600,6 +1665,24 @@ body {
         </div>
       </div>
       <div class="scatter-field" style="min-width:150px">
+        <label class="filter-label">Pengawas</label>
+        <div class="ms-scatter" id="ms-scatterCacahPgw">
+          <div class="ms-trigger" id="ms-trigger-scatterCacahPgw" onclick="toggleScatterMsDropdown('scatterCacahPgw')">
+            <span class="ms-trigger-text placeholder" id="ms-text-scatterCacahPgw">Semua</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-scatterCacahPgw">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterScatterMsItems('scatterCacahPgw',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="scatterMsSelectAll('scatterCacahPgw')">Pilih Semua</button>
+              <button onclick="scatterMsClearAll('scatterCacahPgw')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-scatterCacahPgw"></div>
+            <div class="ms-footer"><button onclick="applyScatterMsFilter('scatterCacahPgw','Cacah')">Terapkan</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="scatter-field" style="min-width:150px">
         <label class="filter-label">Username</label>
         <div class="ms-scatter" id="ms-scatterCacahUser">
           <div class="ms-trigger" id="ms-trigger-scatterCacahUser" onclick="toggleScatterMsDropdown('scatterCacahUser')">
@@ -2546,10 +2629,12 @@ function populateScatterTanggal() {
 function getScatFilters(suffix){
   const tglKey  = 'scatter' + suffix + 'Tgl';
   const kecKey  = 'scatter' + suffix + 'Kec';
+  const pgwKey  = suffix === 'Cacah' ? 'scatterCacahPgw' : null;
   const userKey = 'scatter' + suffix + 'User';
   return {
     tglList:  SCATTER_MS_SELECTED[tglKey]  || new Set(),
     kecList:  SCATTER_MS_SELECTED[kecKey]  || new Set(),
+    pgwList:  pgwKey ? (SCATTER_MS_SELECTED[pgwKey] || new Set()) : new Set(),
     userList: SCATTER_MS_SELECTED[userKey] || new Set()
   };
 }
@@ -2557,38 +2642,32 @@ function getScatFilters(suffix){
 function getScatMetrics(userRole, filters){
   let rows = historiUsernameData.filter(r=>String(r.user||'').trim()===userRole);
   if(filters.tglList && filters.tglList.size > 0) rows = rows.filter(r=>filters.tglList.has(r.tanggal));
-  // Filter kecamatan dari kecList (multiselect)
   if(filters.kecList && filters.kecList.size > 0)
     rows = rows.filter(r=>filters.kecList.has(scatterKecMap[r.username]||'(Kosong)'));
-  // Filter username dari userList (multiselect)
+  if(filters.pgwList && filters.pgwList.size > 0 && PENGAWAS_KEY){
+    // Build map username → pengawas sekali saja
+    const userToPgw = {};
+    rawData.forEach(r=>{
+      const u = String(r.Username||'').trim();
+      const p = String(r[PENGAWAS_KEY]||'').trim();
+      if(u && p && !userToPgw[u]) userToPgw[u] = p;
+    });
+    rows = rows.filter(r=>filters.pgwList.has(userToPgw[r.username]||''));
+  }
   if(filters.userList && filters.userList.size > 0)
     rows = rows.filter(r=>filters.userList.has(r.username));
 
-  // Agregat per username (rata-rata jika multi-tanggal)
-  const byUser = {};
-  rows.forEach(r=>{
-    if(!byUser[r.username]) byUser[r.username] = { username:r.username, user:r.user, _n:0,
-      progresPencacahanKemarin:0, capaianHarianPencacahan:0,
-      progresPemeriksaanKemarin:0, capaianHarianPengawasan:0,
-      _pctOpenSum:0, _pctOpenCount:0 };
-    const b = byUser[r.username]; b._n++;
-    b.progresPencacahanKemarin  += +r.progresPencacahanKemarin  || 0;
-    b.capaianHarianPencacahan   += +r.capaianHarianPencacahan   || 0;
-    b.progresPemeriksaanKemarin += +r.progresPemeriksaanKemarin || 0;
-    b.capaianHarianPengawasan   += +r.capaianHarianPengawasan   || 0;
-    // % OPEN/Target — rata-rata dari semua tanggal yang dipilih
-    if(r.persenOpenTarget !== null && r.persenOpenTarget !== undefined && !isNaN(+r.persenOpenTarget)){
-      b._pctOpenSum   += +r.persenOpenTarget;
-      b._pctOpenCount += 1;
-    }
-  });
-  return Object.values(byUser).map(b=>({
-    username: b.username, user: b.user,
-    progresPencacahanKemarin:  b._n ? b.progresPencacahanKemarin  / b._n : null,
-    capaianHarianPencacahan:   b._n ? b.capaianHarianPencacahan   / b._n : null,
-    progresPemeriksaanKemarin: b._n ? b.progresPemeriksaanKemarin / b._n : null,
-    capaianHarianPengawasan:   b._n ? b.capaianHarianPengawasan   / b._n : null,
-    persenOpenTarget: b._pctOpenCount > 0 ? b._pctOpenSum / b._pctOpenCount : null
+  // Kembalikan SETIAP baris per-tanggal (tidak dirata-rata)
+  // Sehingga multi-tanggal = multi titik per username
+  return rows.map(r=>({
+    username              : r.username,
+    user                  : r.user,
+    tanggal               : r.tanggal || '',
+    progresPencacahanKemarin  : r.progresPencacahanKemarin  != null ? +r.progresPencacahanKemarin  : null,
+    capaianHarianPencacahan   : r.capaianHarianPencacahan   != null ? +r.capaianHarianPencacahan   : null,
+    progresPemeriksaanKemarin : r.progresPemeriksaanKemarin != null ? +r.progresPemeriksaanKemarin : null,
+    capaianHarianPengawasan   : r.capaianHarianPengawasan   != null ? +r.capaianHarianPengawasan   : null,
+    persenOpenTarget          : r.persenOpenTarget          != null ? +r.persenOpenTarget           : null
   }));
 }
 
@@ -2607,48 +2686,104 @@ function swapScatterAxis(suffix){
   if(suffix==='Cacah') renderScatterCacah(); else renderScatterRiksa();
 }
 
-function buildScatterDatasets(metrics, xKey, yKey){
-  // Kelompokkan data berdasarkan kecamatan
-  const groupedByKec = {};
-  
-  metrics.forEach((m) => {
-    const xv = m[xKey], yv = m[yKey];
-    if (xv === null || xv === undefined || yv === null || yv === undefined) return;
-    if (isNaN(+xv) || isNaN(+yv)) return;
-    
-    const kec = scatterKecMap[m.username] || '(Kosong)';
-    if (!groupedByKec[kec]) {
-      groupedByKec[kec] = [];
+function buildScatterDatasets(metrics, xKey, yKey, colorMode){
+  // colorMode: 'kec' (default) atau 'username'
+  // colorMode='username' aktif saat filter hanya satu kecamatan dipilih
+
+  const USER_COLORS = [
+    '#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6',
+    '#ec4899','#14b8a6','#f97316','#6366f1','#84cc16',
+    '#0ea5e9','#a855f7','#10b981','#fb923c','#e11d48'
+  ];
+  const userColorMap = {};
+  let userColorIdx = 0;
+  function getUserColor(uname){
+    if(!userColorMap[uname]) userColorMap[uname] = USER_COLORS[userColorIdx++ % USER_COLORS.length];
+    return userColorMap[uname];
+  }
+
+  if(colorMode === 'pgw'){
+    // Satu dataset per pengawas — ambil pengawas dari rawData
+    const userToPgw = {};
+    if(typeof PENGAWAS_KEY !== 'undefined' && PENGAWAS_KEY){
+      rawData.forEach(r=>{
+        const u = String(r.Username||'').trim();
+        const p = String(r[PENGAWAS_KEY]||'').trim();
+        if(u && p && !userToPgw[u]) userToPgw[u] = p;
+      });
     }
-    groupedByKec[kec].push({
-      x: +xv,
-      y: +yv,
-      label: m.username,
-      username: m.username
+    const grouped = {};
+    metrics.forEach(m => {
+      const xv = m[xKey], yv = m[yKey];
+      if(xv === null || xv === undefined || yv === null || yv === undefined) return;
+      if(isNaN(+xv) || isNaN(+yv)) return;
+      const pgw = userToPgw[m.username] || '(Kosong)';
+      if(!grouped[pgw]) grouped[pgw] = [];
+      grouped[pgw].push({ x:+xv, y:+yv, username:m.username, tanggal:m.tanggal||'' });
     });
+    return Object.keys(grouped).sort().map((pgw, i) => {
+      const color = USER_COLORS[i % USER_COLORS.length];
+      return {
+        label: pgw,
+        data: grouped[pgw],
+        backgroundColor: color,
+        borderColor: color,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5
+      };
+    });
+  }
+
+  if(colorMode === 'username'){
+    // Satu dataset per username, warna berbeda per user
+    const grouped = {};
+    metrics.forEach(m => {
+      const xv = m[xKey], yv = m[yKey];
+      if(xv === null || xv === undefined || yv === null || yv === undefined) return;
+      if(isNaN(+xv) || isNaN(+yv)) return;
+      if(!grouped[m.username]) grouped[m.username] = [];
+      grouped[m.username].push({ x:+xv, y:+yv, username:m.username, tanggal:m.tanggal||'' });
+    });
+    return Object.keys(grouped).sort().map(uname => {
+      const color = getUserColor(uname);
+      return {
+        label: uname,
+        data: grouped[uname],
+        backgroundColor: color,
+        borderColor: color,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5
+      };
+    });
+  }
+
+  // Default: warna per kecamatan
+  const grouped = {};
+  metrics.forEach(m => {
+    const xv = m[xKey], yv = m[yKey];
+    if(xv === null || xv === undefined || yv === null || yv === undefined) return;
+    if(isNaN(+xv) || isNaN(+yv)) return;
+    const kec = scatterKecMap[m.username] || '(Kosong)';
+    if(!grouped[kec]) grouped[kec] = [];
+    grouped[kec].push({ x:+xv, y:+yv, username:m.username, tanggal:m.tanggal||'' });
   });
-  
-  // Buat satu dataset per kecamatan
-  const datasets = [];
-  const kecNames = Object.keys(groupedByKec).sort();
-  
-  kecNames.forEach((kec, index) => {
-    const points = groupedByKec[kec];
+  return Object.keys(grouped).sort().map(kec => {
     const color = getKecamatanColor(kec);
-    
-    datasets.push({
+    return {
       label: kec,
-      data: points.map(p => ({ x: p.x, y: p.y, label: p.label, username: p.username })),
+      data: grouped[kec],
       backgroundColor: color,
       borderColor: color,
       pointRadius: 6,
-      pointHoverRadius: 8,
-      pointBorderColor: '#ffffff',
-      pointBorderWidth: 1
-    });
+      pointHoverRadius: 9,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 1.5
+    };
   });
-  
-  return datasets;
 }
 function updateScatterLegend(datasets, legendId) {
   const legendEl = document.getElementById(legendId);
@@ -2701,15 +2836,20 @@ function scatterChartOptions(xLabel, yLabel){
       tooltip: {
         callbacks: {
           label: function(ctx) {
-            const raw = ctx.raw;
-            const username = raw.username || raw.label || 'Unknown';
-            const kec = scatterKecMap[username] || '(Kosong)';
-            return [
-              `👤 ${username}`,
-              `📍 ${kec}`,
-              `X: ${(+raw.x).toLocaleString('id-ID', {maximumFractionDigits: 1})}`,
-              `Y: ${(+raw.y).toLocaleString('id-ID', {maximumFractionDigits: 1})}`
+            const raw  = ctx.raw;
+            const uname = raw.username || raw.label || 'Unknown';
+            const kec  = scatterKecMap[uname] || '(Kosong)';
+            const chart   = ctx.chart;
+            const xLabel  = chart.options.scales.x.title.text || 'X';
+            const yLabel  = chart.options.scales.y.title.text || 'Y';
+            const lines = [
+              '👤 ' + uname,
+              '📍 ' + kec
             ];
+            if(raw.tanggal) lines.push('📅 ' + raw.tanggal);
+            lines.push(xLabel + ': ' + (+raw.x).toLocaleString('id-ID',{maximumFractionDigits:1}));
+            lines.push(yLabel + ': ' + (+raw.y).toLocaleString('id-ID',{maximumFractionDigits:1}));
+            return lines;
           }
         }
       }
@@ -2747,14 +2887,18 @@ function renderScatterCacah(){
       metrics = metrics.map(m=>({...m, persenOpen: poMap[m.username]??null}));
     }
   }
-  const datasets = buildScatterDatasets(metrics, xKey, yKey);
+  // colorMode: kec (default) → pgw (1 kec dipilih) → username (1 kec + 1 pgw dipilih)
+  const kecSelCacah = SCATTER_MS_SELECTED.scatterCacahKec || new Set();
+  const pgwSelCacah = SCATTER_MS_SELECTED.scatterCacahPgw || new Set();
+  const colorModeCacah = kecSelCacah.size === 1 && pgwSelCacah.size === 1 ? 'username'
+    : kecSelCacah.size === 1 ? 'pgw'
+    : 'kec';
+  const datasets = buildScatterDatasets(metrics, xKey, yKey, colorModeCacah);
   if(scatterCacahChart) scatterCacahChart.destroy();
   scatterCacahChart = new Chart(canvas.getContext('2d'),{
     type:'scatter', data:{datasets},
     options:scatterChartOptions(SCATTER_METRIC_LABELS[xKey], SCATTER_METRIC_LABELS[yKey])
   });
-  
-  // ← TAMBAHKAN INI
   updateScatterLegend(scatterCacahChart.data.datasets, 'legendCacah');
 }
 
@@ -2769,14 +2913,14 @@ function renderScatterRiksa(){
   }
   const filters = getScatFilters('Riksa');
   const metrics = getScatMetrics('Pengawas', filters);
-  const datasets = buildScatterDatasets(metrics, xKey, yKey);
+  const kecSelRiksa = SCATTER_MS_SELECTED.scatterRiksaKec || new Set();
+  const colorModeRiksa = kecSelRiksa.size === 1 ? 'username' : 'kec';
+  const datasets = buildScatterDatasets(metrics, xKey, yKey, colorModeRiksa);
   if(scatterRiksaChart) scatterRiksaChart.destroy();
   scatterRiksaChart = new Chart(canvas.getContext('2d'),{
     type:'scatter', data:{datasets},
     options:scatterChartOptions(SCATTER_METRIC_LABELS[xKey], SCATTER_METRIC_LABELS[yKey])
   });
-  
-  // ← TAMBAHKAN INI
   updateScatterLegend(scatterRiksaChart.data.datasets, 'legendRiksa');
 }
 
@@ -2789,7 +2933,7 @@ function initScatterPlots(){
   populateScatterTanggal();  // ← TAMBAHKAN INI
   
   // Inisialisasi multi-select dropdowns
-  ['scatterCacahTgl', 'scatterRiksaTgl', 'scatterCacahKec', 'scatterCacahUser', 'scatterRiksaKec', 'scatterRiksaUser'].forEach(id => {
+  ['scatterCacahTgl', 'scatterRiksaTgl', 'scatterCacahKec', 'scatterCacahPgw', 'scatterCacahUser', 'scatterRiksaKec', 'scatterRiksaUser'].forEach(id => {
     buildScatterMsList(id);
     updateScatterMsTrigger(id);
   });
@@ -2809,6 +2953,7 @@ const SCATTER_MS_SELECTED = {
   scatterCacahTgl: new Set(),
   scatterRiksaTgl: new Set(),
   scatterCacahKec: new Set(),
+  scatterCacahPgw: new Set(),
   scatterCacahUser: new Set(),
   scatterRiksaKec: new Set(),
   scatterRiksaUser: new Set()
@@ -2885,28 +3030,42 @@ function buildScatterMsList(id) {
     );
     const kecSet = new Set([...usersInRole].map(u => scatterKecMap[u] || '(Kosong)').filter(Boolean));
     options = [...kecSet].sort();
+  } else if (id === 'scatterCacahPgw') {
+    // Pengawas: filter by kecamatan yang dipilih
+    const selKec = SCATTER_MS_SELECTED.scatterCacahKec;
+    const pgwSet = new Set();
+    if(PENGAWAS_KEY){
+      rawData.forEach(r => {
+        const kec = r.Kecamatan || '';
+        const pgw = String(r[PENGAWAS_KEY] || '').trim();
+        if(!pgw) return;
+        if(selKec.size === 0 || selKec.has(kec)) pgwSet.add(pgw);
+      });
+    }
+    options = [...pgwSet].sort();
   } else if (id === 'scatterCacahUser' || id === 'scatterRiksaUser') {
-    // Untuk Username, filter berdasarkan kecamatan yang dipilih
     const userRole = id === 'scatterCacahUser' ? 'Pencacah' : 'Pengawas';
     let usersInRole = new Set(
       historiUsernameData.filter(r => String(r.user || '').trim() === userRole).map(r => r.username)
     );
-    
-    // Tentukan ID kecamatan yang sesuai
     const kecId = id === 'scatterCacahUser' ? 'scatterCacahKec' : 'scatterRiksaKec';
     const selectedKec = SCATTER_MS_SELECTED[kecId];
-    
-    // Filter username berdasarkan kecamatan yang dipilih
     if (selectedKec && selectedKec.size > 0) {
-      // Jika ada kecamatan dipilih, filter username berdasarkan kecamatan tersebut
-      usersInRole = new Set(
-        [...usersInRole].filter(u => {
-          const kec = scatterKecMap[u] || '(Kosong)';
-          return selectedKec.has(kec);
-        })
-      );
+      usersInRole = new Set([...usersInRole].filter(u => selectedKec.has(scatterKecMap[u]||'(Kosong)')));
     }
-    
+    // scatterCacahUser: filter juga berdasarkan Pengawas yang dipilih
+    if(id === 'scatterCacahUser'){
+      const selPgw = SCATTER_MS_SELECTED.scatterCacahPgw;
+      if(selPgw.size > 0 && PENGAWAS_KEY){
+        const userToPgw = {};
+        rawData.forEach(r=>{
+          const u = String(r.Username||'').trim();
+          const p = String(r[PENGAWAS_KEY]||'').trim();
+          if(u && p && !userToPgw[u]) userToPgw[u] = p;
+        });
+        usersInRole = new Set([...usersInRole].filter(u => selPgw.has(userToPgw[u]||'')));
+      }
+    }
     options = [...usersInRole].sort();
   }
   
@@ -3006,10 +3165,12 @@ function applyScatterMsFilter(id, suffix) {
   
   // Jika yang diubah adalah Kecamatan, refresh daftar Username
   if (id === 'scatterCacahKec') {
-    // Rebuild list Username untuk Cacah
+    // Rebuild Pengawas dan Username sesuai kecamatan baru
+    SCATTER_MS_SELECTED.scatterCacahPgw.clear();
+    buildScatterMsList('scatterCacahPgw');
+    updateScatterMsTrigger('scatterCacahPgw');
     buildScatterMsList('scatterCacahUser');
     updateScatterMsTrigger('scatterCacahUser');
-    // Hapus pilihan username yang tidak valid (tidak sesuai kecamatan)
     const selectedKec = SCATTER_MS_SELECTED['scatterCacahKec'];
     const userSel = SCATTER_MS_SELECTED['scatterCacahUser'];
     if (selectedKec.size > 0) {
@@ -3025,6 +3186,12 @@ function applyScatterMsFilter(id, suffix) {
     }
     updateScatterMsTrigger('scatterCacahUser');
     renderScatterCacah();
+  } else if (id === 'scatterCacahPgw') {
+    // Rebuild Username sesuai Pengawas yang dipilih
+    SCATTER_MS_SELECTED.scatterCacahUser.clear();
+    buildScatterMsList('scatterCacahUser');
+    updateScatterMsTrigger('scatterCacahUser');
+    if (suffix === 'Cacah') renderScatterCacah();
   } else if (id === 'scatterRiksaKec') {
     // Rebuild list Username untuk Riksa
     buildScatterMsList('scatterRiksaUser');
@@ -3057,7 +3224,12 @@ function resetScatterFilters(suffix) {
     SCATTER_MS_SELECTED.scatterCacahKec.clear();
     updateScatterMsTrigger('scatterCacahKec');
     buildScatterMsList('scatterCacahKec');
-    
+
+    // Reset pengawas
+    SCATTER_MS_SELECTED.scatterCacahPgw.clear();
+    updateScatterMsTrigger('scatterCacahPgw');
+    buildScatterMsList('scatterCacahPgw');
+
     // Reset username
     SCATTER_MS_SELECTED.scatterCacahUser.clear();
     updateScatterMsTrigger('scatterCacahUser');
@@ -3098,75 +3270,7 @@ document.addEventListener('click', function(e) {
 });
 
 // Override getScatFilters untuk menggunakan multi-select
-function getScatFilters(suffix) {
-  const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-  
-  // Untuk kecamatan dan user, ambil dari multi-select
-  let kecFilter = null;
-  let userFilter = null;
-  
-  if (suffix === 'Cacah') {
-    const kecSel = SCATTER_MS_SELECTED.scatterCacahKec;
-    const userSel = SCATTER_MS_SELECTED.scatterCacahUser;
-    kecFilter = kecSel.size > 0 ? [...kecSel] : null;
-    userFilter = userSel.size > 0 ? [...userSel] : null;
-  } else {
-    const kecSel = SCATTER_MS_SELECTED.scatterRiksaKec;
-    const userSel = SCATTER_MS_SELECTED.scatterRiksaUser;
-    kecFilter = kecSel.size > 0 ? [...kecSel] : null;
-    userFilter = userSel.size > 0 ? [...userSel] : null;
-  }
-  
-  return {
-    tglAwal:  val(`scat${suffix}TglAwal`),
-    tglAkhir: val(`scat${suffix}TglAkhir`),
-    kecList:  kecFilter,
-    userList: userFilter
-  };
-}
-
-// Override getScatMetrics untuk support multi-select
-function getScatMetrics(userRole, filters) {
-  let rows = historiUsernameData.filter(r => String(r.user || '').trim() === userRole);
-  
-  if(filters.tglList && filters.tglList.size > 0) rows = rows.filter(r=>filters.tglList.has(r.tanggal));
-  
-  // Filter kecamatan (multi-select)
-  if (filters.kecList && filters.kecList.length > 0) {
-    rows = rows.filter(r => {
-      const kec = scatterKecMap[r.username] || '(Kosong)';
-      return filters.kecList.includes(kec);
-    });
-  }
-  
-  // Filter username (multi-select)
-  if (filters.userList && filters.userList.length > 0) {
-    rows = rows.filter(r => filters.userList.includes(r.username));
-  }
-  
-  // Agregat per username
-  const byUser = {};
-  rows.forEach(r => {
-    if (!byUser[r.username]) byUser[r.username] = { 
-      username: r.username, user: r.user, _n: 0,
-      progresPencacahanKemarin: 0, capaianHarianPencacahan: 0,
-      progresPemeriksaanKemarin: 0, capaianHarianPengawasan: 0 
-    };
-    const b = byUser[r.username]; b._n++;
-    b.progresPencacahanKemarin  += +r.progresPencacahanKemarin  || 0;
-    b.capaianHarianPencacahan   += +r.capaianHarianPencacahan   || 0;
-    b.progresPemeriksaanKemarin += +r.progresPemeriksaanKemarin || 0;
-    b.capaianHarianPengawasan   += +r.capaianHarianPengawasan   || 0;
-  });
-  
-  return Object.values(byUser).map(b => ({
-    username: b.username, user: b.user,
-    progresPencacahanKemarin:  b._n ? b.progresPencacahanKemarin  / b._n : null,
-    capaianHarianPencacahan:   b._n ? b.capaianHarianPencacahan   / b._n : null,
-    progresPemeriksaanKemarin: b._n ? b.progresPemeriksaanKemarin / b._n : null,
-    capaianHarianPengawasan:   b._n ? b.capaianHarianPengawasan   / b._n : null
-  }));
-}
+/* duplikat getScatFilters & getScatMetrics dihapus — versi baru di atas */
 /* ══════════════════════════════════════
    TREN HARIAN — Histori dari Google Sheets
 ══════════════════════════════════════ */
@@ -3816,10 +3920,60 @@ function resolveSpecialKeys(){
   }
 
   // Normalisasi: pastikan setiap row punya field "Pencacah Awal" & "Pengawas Awal"
-  // dengan nama konsisten, terlepas dari nama kolom asli di CSV
   rawData.forEach(r=>{
     r['Pencacah Awal'] = PENCACAH_KEY ? (r[PENCACAH_KEY] || '') : '';
     r['Pengawas Awal'] = PENGAWAS_KEY ? (r[PENGAWAS_KEY] || '') : '';
+  });
+
+  // Ekstrak kolom AL-AT (index 37-45) → simpan ke petugasProfileMap
+  // Kolom AL (index 37) = Nama, AQ (index 42) = No HP
+  buildPetugasProfileMap(keys);
+}
+
+// Map: username → data profil {nama, am, an, ao, ap, noHp, ar, as_, at, keyNames}
+const petugasProfileMap = {};
+
+function buildPetugasProfileMap(keys){
+  if(!rawData.length) return;
+  const allKeys = keys || Object.keys(rawData[0]);
+  // AL=37, AM=38, AN=39, AO=40, AP=41, AQ=42, AR=43, AS=44, AT=45
+  const colAL = allKeys[37]||null; // Nama Petugas
+  const colAM = allKeys[38]||null;
+  const colAN = allKeys[39]||null;
+  const colAO = allKeys[40]||null;
+  const colAP = allKeys[41]||null;
+  const colAQ = allKeys[42]||null; // No HP
+  const colAR = allKeys[43]||null;
+  const colAS = allKeys[44]||null;
+  const colAT = allKeys[45]||null;
+
+  // Simpan nama kolom untuk ditampilkan di popup
+  petugasProfileMap._colNames = {
+    AL: colAL, AM: colAM, AN: colAN, AO: colAO, AP: colAP,
+    AQ: colAQ, AR: colAR, AS: colAS, AT: colAT
+  };
+
+  // Build map: value kolom AL → profil (pakai username juga sebagai fallback key)
+  rawData.forEach(r=>{
+    const nama    = colAL ? String(r[colAL]||'').trim() : '';
+    const uname   = String(r.Username||'').trim();
+    const key     = nama || uname;
+    if(!key) return;
+    if(petugasProfileMap[key]) return; // sudah ada, skip
+    petugasProfileMap[key] = {
+      nama  : nama,
+      AL    : nama,
+      AM    : colAM ? String(r[colAM]||'').trim() : '',
+      AN    : colAN ? String(r[colAN]||'').trim() : '',
+      AO    : colAO ? String(r[colAO]||'').trim() : '',
+      AP    : colAP ? String(r[colAP]||'').trim() : '',
+      AQ    : colAQ ? String(r[colAQ]||'').trim() : '',  // No HP
+      AR    : colAR ? String(r[colAR]||'').trim() : '',
+      AS    : colAS ? String(r[colAS]||'').trim() : '',
+      AT    : colAT ? String(r[colAT]||'').trim() : '',
+    };
+    // Juga index by username supaya bisa lookup dari username
+    if(uname && uname !== key) petugasProfileMap[uname] = petugasProfileMap[key];
   });
 }
 
@@ -4384,9 +4538,12 @@ function renderPivot(){
 
     const hasChildren = ['Kabupaten','Kecamatan','Desa','SLS'].includes(rowField);
     const rowClass = hasChildren ? ' class="sls-parent-row"' : '';
+    const isPersonRow = ['Username','Pencacah Awal','Pengawas Awal'].includes(rowField);
     const labelContent = hasChildren
       ? `<span class="sls-toggle" onclick="toggleGeoRow(this,'${slsId}')"><span class="sls-toggle-icon">▶</span>${r}</span>`
-      : r;
+      : isPersonRow
+        ? `<span class="petugas-link" onclick="showPetugasPopup(event,'${r.replace(/'/g,"\\'")}','${rowField}')" title="Klik untuk lihat profil petugas">${r} <span style="font-size:9px;opacity:.6">ℹ</span></span>`
+        : r;
     html+=`<tr${rowClass}><td class="row-label">${labelContent}</td>`;
 
     colKeys.forEach(c=>{
@@ -6412,5 +6569,97 @@ function updateMap(filteredRows){
     }
 }
 </script>
+<!-- Popup Profil Petugas -->
+<div id="petugasPopup">
+  <div class="pp-header">
+    <div class="pp-avatar" id="ppAvatar">👤</div>
+    <div>
+      <div class="pp-name" id="ppName">—</div>
+      <div class="pp-role" id="ppRole">—</div>
+    </div>
+    <button class="pp-close" onclick="closePetugasPopup()">✕</button>
+  </div>
+  <div class="pp-body" id="ppBody"></div>
+</div>
+
+<script>
+function showPetugasPopup(evt, username, rowField){
+  evt.stopPropagation();
+  const popup  = document.getElementById('petugasPopup');
+  const profile = petugasProfileMap[username] || {};
+  const cols   = petugasProfileMap._colNames || {};
+
+  // Header
+  const nama = profile.AL || profile.nama || username;
+  document.getElementById('ppName').textContent = nama;
+  document.getElementById('ppRole').textContent =
+    rowField === 'Pengawas Awal' ? '🔎 Pengawas' :
+    rowField === 'Pencacah Awal' ? '📋 Pencacah' :
+    rowField === 'Username'      ? '👤 ' + username : rowField;
+  document.getElementById('ppAvatar').textContent =
+    rowField === 'Pengawas Awal' ? '🔎' : '📋';
+
+  // Body — baris per kolom AM-AT (skip AL karena sudah di header)
+  const ORDER = ['AM','AN','AO','AP','AQ','AR','AS','AT'];
+  let bodyHtml = '';
+  ORDER.forEach(col => {
+    const colName = cols[col] || col;
+    const val     = profile[col] || '';
+    if(!val) return;
+    if(col === 'AQ'){
+      // No HP → link WA
+      const cleaned = val.replace(/[^0-9]/g,'');
+      const waNum   = cleaned.startsWith('0') ? '62' + cleaned.slice(1) : cleaned;
+      bodyHtml += '<div class="pp-row">'
+        + '<span class="pp-key">' + colName + '</span>'
+        + '<span class="pp-val">'
+        +   val
+        +   ' <a class="pp-wa" href="https://wa.me/' + waNum + '" target="_blank" rel="noopener">'
+        +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.95-1.418A9.956 9.956 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.946 7.946 0 01-4.066-1.115l-.29-.174-3.018.865.864-3.018-.174-.29A7.956 7.956 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/></svg>'
+        +     ' Chat WA'
+        +   '</a>'
+        + '</span></div>';
+    } else {
+      bodyHtml += '<div class="pp-row">'
+        + '<span class="pp-key">' + colName + '</span>'
+        + '<span class="pp-val">' + val + '</span>'
+        + '</div>';
+    }
+  });
+  if(!bodyHtml){
+    bodyHtml = '<div class="pp-row"><span class="pp-val" style="color:#94a3b8;font-style:italic">Data profil tidak tersedia (kolom AL–AT kosong)</span></div>';
+  }
+  document.getElementById('ppBody').innerHTML = bodyHtml;
+
+  // Posisi popup dekat kursor tapi tidak keluar layar
+  popup.style.display = 'block';
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const pw = popup.offsetWidth  || 340;
+  const ph = popup.offsetHeight || 300;
+  let x = evt.clientX + 12;
+  let y = evt.clientY + 12;
+  if(x + pw > vw - 12) x = evt.clientX - pw - 12;
+  if(y + ph > vh - 12) y = vh - ph - 12;
+  popup.style.left = Math.max(8, x) + 'px';
+  popup.style.top  = Math.max(8, y) + 'px';
+}
+
+function closePetugasPopup(){
+  document.getElementById('petugasPopup').style.display = 'none';
+}
+
+// Tutup popup kalau klik di luar
+document.addEventListener('click', function(e){
+  const popup = document.getElementById('petugasPopup');
+  if(popup && popup.style.display !== 'none' && !popup.contains(e.target)){
+    closePetugasPopup();
+  }
+});
+// Tutup popup kalau tekan Escape
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closePetugasPopup();
+});
+</script>
+
 </body>
 </html>
