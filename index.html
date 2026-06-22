@@ -1325,25 +1325,62 @@ body {
               <option value="Pencacah Awal">Pencacah</option>
             </select>
           </div>
+          <!-- Filter Kecamatan multi-select -->
           <div class="col-auto" id="sb2KecWrap">
             <label class="filter-label">Filter Kecamatan</label>
-            <select id="sb2FilterKec" class="form-select form-select-sm" style="min-width:140px" onchange="onSb2KecChange()">
-              <option value="">Semua</option>
-            </select>
+            <div class="ms-scatter" id="ms-sb2Kec" style="min-width:150px">
+              <div class="ms-trigger" id="ms-trigger-sb2Kec" onclick="toggleSb2Ms('sb2Kec')">
+                <span class="ms-trigger-text placeholder" id="ms-text-sb2Kec">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-sb2Kec">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterSb2MsItems('sb2Kec',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="sb2MsSelectAll('sb2Kec')">Pilih Semua</button>
+                  <button onclick="sb2MsClearAll('sb2Kec')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-sb2Kec"></div>
+                <div class="ms-footer"><button onclick="applySb2Ms('sb2Kec','kec')">Terapkan</button></div>
+              </div>
+            </div>
           </div>
-          <!-- Filter Pengawas — cascade dari Kecamatan -->
+          <!-- Filter Pengawas multi-select -->
           <div class="col-auto" id="sb2PgwWrap">
             <label class="filter-label">Filter Pengawas</label>
-            <select id="sb2FilterPgw" class="form-select form-select-sm" style="min-width:150px" onchange="onSb2PgwChange()">
-              <option value="">Semua</option>
-            </select>
+            <div class="ms-scatter" id="ms-sb2Pgw" style="min-width:160px">
+              <div class="ms-trigger" id="ms-trigger-sb2Pgw" onclick="toggleSb2Ms('sb2Pgw')">
+                <span class="ms-trigger-text placeholder" id="ms-text-sb2Pgw">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-sb2Pgw">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterSb2MsItems('sb2Pgw',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="sb2MsSelectAll('sb2Pgw')">Pilih Semua</button>
+                  <button onclick="sb2MsClearAll('sb2Pgw')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-sb2Pgw"></div>
+                <div class="ms-footer"><button onclick="applySb2Ms('sb2Pgw','pgw')">Terapkan</button></div>
+              </div>
+            </div>
           </div>
-          <!-- Filter Pencacah — cascade dari Pengawas, hanya tampil saat mode Pencacah -->
+          <!-- Filter Pencacah multi-select — hanya saat mode Pencacah -->
           <div class="col-auto" id="sb2CacahWrap" style="display:none">
             <label class="filter-label">Filter Pencacah</label>
-            <select id="sb2FilterCacah" class="form-select form-select-sm" style="min-width:150px" onchange="renderStackedBar2()">
-              <option value="">Semua</option>
-            </select>
+            <div class="ms-scatter" id="ms-sb2Cacah" style="min-width:160px">
+              <div class="ms-trigger" id="ms-trigger-sb2Cacah" onclick="toggleSb2Ms('sb2Cacah')">
+                <span class="ms-trigger-text placeholder" id="ms-text-sb2Cacah">Semua</span>
+                <span class="ms-arrow">▼</span>
+              </div>
+              <div class="ms-dropdown" id="ms-dropdown-sb2Cacah">
+                <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterSb2MsItems('sb2Cacah',this.value)"></div>
+                <div class="ms-actions">
+                  <button onclick="sb2MsSelectAll('sb2Cacah')">Pilih Semua</button>
+                  <button onclick="sb2MsClearAll('sb2Cacah')">Hapus</button>
+                </div>
+                <div class="ms-list" id="ms-list-sb2Cacah"></div>
+                <div class="ms-footer"><button onclick="applySb2Ms('sb2Cacah','cacah')">Terapkan</button></div>
+              </div>
+            </div>
           </div>
           <div class="col-auto" id="sb2DesaWrap" style="display:none">
             <label class="filter-label">Filter Desa</label>
@@ -1532,6 +1569,25 @@ body {
             </div>
             <div class="ms-list" id="ms-list-filterSLS"></div>
             <div class="ms-footer"><button onclick="applyMsFilter('filterSLS')">Terapkan</button></div>
+          </div>
+        </div>
+      </div>
+      <!-- SubSLS — hanya aktif saat SLS dipilih -->
+      <div class="col-md-auto" id="wrap-filterSubSLS">
+        <label class="filter-label">SubSLS</label>
+        <div class="ms-wrap" id="ms-wrap-filterSubSLS">
+          <div class="ms-trigger" id="ms-trigger-filterSubSLS" onclick="toggleMsDropdown('filterSubSLS')" style="opacity:.45;pointer-events:none" title="Pilih SLS terlebih dahulu">
+            <span class="ms-trigger-text placeholder" id="ms-text-filterSubSLS">Pilih SLS dulu</span>
+            <span class="ms-arrow">▼</span>
+          </div>
+          <div class="ms-dropdown" id="ms-dropdown-filterSubSLS">
+            <div class="ms-search-wrap"><input class="ms-search" type="text" placeholder="Cari…" oninput="filterMsItems('filterSubSLS',this.value)"></div>
+            <div class="ms-actions">
+              <button onclick="msSelectAll('filterSubSLS')">Pilih Semua</button>
+              <button onclick="msClearAll('filterSubSLS')">Hapus</button>
+            </div>
+            <div class="ms-list" id="ms-list-filterSubSLS"></div>
+            <div class="ms-footer"><button onclick="applyMsFilter('filterSubSLS')">Terapkan</button></div>
           </div>
         </div>
       </div>
@@ -1990,6 +2046,7 @@ const MS_SELECTED = {
   filterKecamatan: new Set(),
   filterDesa: new Set(),
   filterSLS: new Set(),
+  filterSubSLS: new Set(),
   filterPencacahAwal: new Set(),
   filterPengawasAwal: new Set()
 };
@@ -1998,7 +2055,7 @@ const MS_SELECTED = {
 const MAIN_FIELD = {
   filterUsername:"Username", filterUser:"User", filterAssignment:"Assignment",
   filterKabupaten:"Kabupaten", filterKecamatan:"Kecamatan",
-  filterDesa:"Desa", filterSLS:"SLS",
+  filterDesa:"Desa", filterSLS:"SLS", filterSubSLS:"SubSLS",
   filterPencacahAwal:"Pencacah Awal", filterPengawasAwal:"Pengawas Awal"
 };
 
@@ -2015,6 +2072,7 @@ function getMainFiltered(excludeId){
 
 // Build the checkbox list for one ms dropdown
 function buildMsList(id){
+  if(id === 'filterSubSLS'){ _buildSubSLSList(); return; }
   const listEl = document.getElementById('ms-list-' + id);
   const field   = MAIN_FIELD[id];
   const subset  = getMainFiltered(id);
@@ -2102,10 +2160,59 @@ const ALL_MS_IDS = [...MAIN_IDS];
 function applyMsFilter(id){
   closeMsDropdown(id);
   updateMsTrigger(id);
+
+  // Cascade: SLS berubah → reset SubSLS dan rebuild
+  if(id === 'filterSLS'){
+    MS_SELECTED.filterSubSLS.clear();
+    updateMsTrigger('filterSubSLS');
+    _buildSubSLSList();
+    const hasSLS = MS_SELECTED.filterSLS.size > 0;
+    const trigger = document.getElementById('ms-trigger-filterSubSLS');
+    if(trigger){
+      trigger.style.opacity = hasSLS ? '' : '.45';
+      trigger.style.pointerEvents = hasSLS ? '' : 'none';
+      trigger.title = hasSLS ? '' : 'Pilih SLS terlebih dahulu';
+      const txt = document.getElementById('ms-text-filterSubSLS');
+      if(txt) txt.textContent = hasSLS ? 'Semua' : 'Pilih SLS dulu';
+    }
+  }
+
   MAIN_IDS.forEach(otherId => {
-    if(otherId !== id) buildMsList(otherId);
+    if(otherId !== id && otherId !== 'filterSubSLS') buildMsList(otherId);
   });
-  if(table) table.draw();
+  if(id !== 'filterSubSLS') buildMsList('filterSubSLS');
+  if(table){
+    table.draw();
+    // updateMap dipanggil otomatis dari table.on('draw')
+  } else {
+    updateMap(getMainFiltered(null));
+  }
+  // Refresh highlight border SubSLS di peta
+  if(mapInstance && mapInstance._refreshSubslsStyle){
+    mapInstance._refreshSubslsStyle();
+  }
+}
+
+function _buildSubSLSList(){
+  const listEl = document.getElementById('ms-list-filterSubSLS');
+  if(!listEl) return;
+  const selSLS = MS_SELECTED.filterSLS;
+  const selSub = MS_SELECTED.filterSubSLS;
+  if(selSLS.size === 0){ listEl.innerHTML = '<div class="ms-empty">Pilih SLS terlebih dahulu</div>'; return; }
+  const vals = [...new Set(rawData.filter(r=>selSLS.has(r.SLS||'')).map(r=>(r.SubSLS||'').toString().trim()).filter(Boolean))].sort();
+  listEl.innerHTML = '';
+  if(!vals.length){ listEl.innerHTML='<div class="ms-empty">Tidak ada SubSLS</div>'; return; }
+  vals.forEach(v=>{
+    const checked = selSub.has(v);
+    const item = document.createElement('label');
+    item.className = 'ms-item' + (checked?' checked':'');
+    item.innerHTML = `<input type="checkbox" value="${v}" ${checked?'checked':''}><span>${v}</span>`;
+    item.querySelector('input').addEventListener('change',function(){
+      if(this.checked){ selSub.add(v); item.classList.add('checked'); }
+      else { selSub.delete(v); item.classList.remove('checked'); }
+    });
+    listEl.appendChild(item);
+  });
 }
 
 // Toggle dropdown open/close
@@ -2137,7 +2244,20 @@ function resetMainFilters(){
     updateMsTrigger(id);
     buildMsList(id);
   });
-  if(table) table.draw();
+  // Reset SubSLS trigger ke disabled
+  const trigger = document.getElementById('ms-trigger-filterSubSLS');
+  if(trigger){
+    trigger.style.opacity = '.45';
+    trigger.style.pointerEvents = 'none';
+    trigger.title = 'Pilih SLS terlebih dahulu';
+  }
+  const txt = document.getElementById('ms-text-filterSubSLS');
+  if(txt) txt.textContent = 'Pilih SLS dulu';
+  if(table){
+    table.draw();
+  } else {
+    updateMap(rawData);
+  }
 }
 
 function fillFilters(){
@@ -2149,6 +2269,7 @@ $.fn.dataTable.ext.search.push(function(s, data){
   const colMap = {
     filterAssignment: 0, filterUsername: 4, filterUser: 5,
     filterKabupaten: 7, filterKecamatan: 8, filterDesa: 9, filterSLS: 10,
+    filterSubSLS: 11,
     filterPencacahAwal: 12, filterPengawasAwal: 13
   };
   return MAIN_IDS.every(id => {
@@ -3643,7 +3764,7 @@ function renderTrenChart(chartId){
     return;
   }
 
-  // Mode filter: rata-rata per-tanggal dari username yang dipilih
+  // Mode filter: rata-rata/jumlah per-tanggal, per kecamatan jika >1 kecamatan dipilih
   if(!historiUsernameData.length) return;
   const tanggals = [...new Set(historiUsernameData.map(r=>r.tanggal).filter(Boolean))].sort();
   const labels   = makeTrenLabels(tanggals);
@@ -3655,6 +3776,9 @@ function renderTrenChart(chartId){
     Capaian: ['progresPemeriksaanKemarin','capaianHarianPengawasan'],
     Open:    ['persenOpenTarget']
   };
+  // Field mana yang harus dijumlah (sum) vs dirata-rata (avg)
+  const sumFields = new Set(['progresPencacahanKemarin','progresPemeriksaanKemarin']);
+
   const labelMap  = {
     progresPencacahanKemarin:  'Progres Pencacahan Kemarin',
     progresPemeriksaanKemarin: 'Progres Pemeriksaan Kemarin',
@@ -3662,7 +3786,7 @@ function renderTrenChart(chartId){
     capaianHarianPengawasan:   'Rata-rata Capaian Pemeriksaan',
     persenOpenTarget:          '% OPEN/Target'
   };
-  const colorMap  = {
+  const colorMapTren  = {
     progresPencacahanKemarin:'#3b82f6',  capaianHarianPencacahan:'#f59e0b',
     progresPemeriksaanKemarin:'#22c55e', capaianHarianPengawasan:'#8b5cf6',
     persenOpenTarget:'#ef4444'
@@ -3674,11 +3798,51 @@ function renderTrenChart(chartId){
 
   // Filter rows sesuai kec+user
   let rows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
-  if(kecSel.size  > 0) rows = rows.filter(r => kecSel.has(scatterKecMap[r.username]||'(Kosong)'));
   if(userSel.size > 0) rows = rows.filter(r => userSel.has(r.username));
 
-  // Rata-rata per tanggal per field
-  const series = fields.map((field, fi) => {
+  // Warna per kecamatan
+  const KEC_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1'];
+
+  // Jika lebih dari 1 kecamatan dipilih → buat series per kecamatan per field
+  if(kecSel.size > 1){
+    const kecList = [...kecSel].sort();
+    const series = [];
+    let colorIdx = 0;
+
+    fields.forEach((field) => {
+      const isSum = sumFields.has(field);
+      kecList.forEach((kec) => {
+        const kecRows = rows.filter(r => (scatterKecMap[r.username]||'(Kosong)') === kec);
+        const byTgl = {}, cntTgl = {};
+        kecRows.forEach(r => {
+          const v = numOrNull(r[field]);
+          if(v === null) return;
+          byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
+          cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
+        });
+        const baseColor = KEC_COLORS[colorIdx % KEC_COLORS.length];
+        colorIdx++;
+        series.push({
+          label: `${kec} — ${labelMap[field]}`,
+          data:  padN(tanggals.map(t => {
+            if(!cntTgl[t]) return null;
+            return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
+          })),
+          color: baseColor,
+          _field: field
+        });
+      });
+    });
+    // Gunakan renderTrendChartMulti yang mendukung banyak series
+    renderTrendChartMulti(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, series, titleMap2[chartId]);
+    return;
+  }
+
+  // Mode 0 atau 1 kecamatan: tampilkan 1-2 series (sum/avg) seperti semula
+  if(kecSel.size === 1) rows = rows.filter(r => kecSel.has(scatterKecMap[r.username]||'(Kosong)'));
+
+  const series = fields.map((field) => {
+    const isSum = sumFields.has(field);
     const byTgl = {};
     const cntTgl = {};
     rows.forEach(r => {
@@ -3689,8 +3853,11 @@ function renderTrenChart(chartId){
     });
     return {
       label: labelMap[field],
-      data:  padN(tanggals.map(t => cntTgl[t] ? +(byTgl[t]/cntTgl[t]).toFixed(2) : null)),
-      color: colorMap[field]
+      data:  padN(tanggals.map(t => {
+        if(!cntTgl[t]) return null;
+        return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
+      })),
+      color: colorMapTren[field]
     };
   });
 
@@ -3902,6 +4069,123 @@ function renderTrendChart(canvasId, existingChart, setChart, labels, series, tit
             color  : series[1]?.color || '#f59e0b',
             padding: 0
           } : { display:false }
+        }
+      },
+      animation: { duration:400, easing:'easeOutQuart' }
+    }
+  });
+  setChart(chart);
+}
+
+// Render tren chart dengan banyak series (mode multi-kecamatan)
+// Series bisa lebih dari 2; gunakan 2 axis hanya jika ada >1 field berbeda
+function renderTrendChartMulti(canvasId, existingChart, setChart, labels, series, title){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  if(existingChart) existingChart.destroy();
+
+  // Kelompokkan series per field agar tahu axis
+  const fields = [...new Set(series.map(s => s._field).filter(Boolean))];
+  const field0 = fields[0];
+  const field1 = fields[1];
+  const useRightAxis = fields.length > 1;
+
+  const datasets = series.map((s) => {
+    const onRight = useRightAxis && s._field === field1;
+    return {
+      label: s.label,
+      data: s.data,
+      borderColor: s.color,
+      backgroundColor: s.color + '18',
+      stepped: 'before',
+      fill: true,
+      spanGaps: true,
+      borderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      pointBackgroundColor: s.color,
+      borderDash: onRight ? [5,3] : [],
+      yAxisID: onRight ? 'yR' : 'yL'
+    };
+  });
+
+  const valsL = series.filter(s => !useRightAxis || s._field === field0).flatMap(s => s.data.filter(v=>v!==null));
+  const valsR = useRightAxis ? series.filter(s => s._field === field1).flatMap(s => s.data.filter(v=>v!==null)) : [];
+  const maxL = valsL.length ? Math.max(...valsL) : 10;
+  const maxR = valsR.length ? Math.max(...valsR) : 10;
+
+  const sumFields = new Set(['progresPencacahanKemarin','progresPemeriksaanKemarin']);
+  const chart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        title: {
+          display: true,
+          text: title,
+          font: { size:12, weight:'600', family:"'Inter',sans-serif" },
+          color: '#1e293b',
+          padding: { bottom:8 }
+        },
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            boxWidth: 12, boxHeight: 2, font: { size:9 },
+            usePointStyle: false,
+            generateLabels(chart){
+              return chart.data.datasets.map((ds,i)=>({
+                text: ds.label, fillStyle: ds.borderColor, strokeStyle: ds.borderColor,
+                lineWidth: 2, hidden: false, datasetIndex: i
+              }));
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label(ctx){
+              const val = ctx.parsed.y;
+              if(val === null || val === undefined) return null;
+              const fmt = val.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1});
+              return ' ' + ctx.dataset.label + ': ' + fmt;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color:'rgba(226,232,240,.5)', lineWidth:1 },
+          ticks: { font:{size:9}, color:'#94a3b8', maxRotation:0, autoSkip:true, maxTicksLimit:8 },
+          border: { dash:[3,3], color:'transparent' }
+        },
+        yL: {
+          type: 'linear', position: 'left', beginAtZero: true,
+          suggestedMax: maxL * 1.15,
+          grid: { color:'rgba(226,232,240,.5)', lineWidth:1 },
+          ticks: {
+            font: { size:9 },
+            callback: v => v.toLocaleString('id-ID')
+          },
+          title: {
+            display: useRightAxis, text: field0 ? (sumFields.has(field0) ? 'Jumlah (SUM)' : 'Rata-rata') : '',
+            font: { size:9 }, color:'#64748b', padding:0
+          }
+        },
+        yR: {
+          type: 'linear', position: 'right', display: useRightAxis,
+          beginAtZero: true, suggestedMax: maxR * 1.15,
+          grid: { display: false },
+          ticks: {
+            font: { size:9 },
+            callback: v => v.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})
+          },
+          title: {
+            display: useRightAxis, text: field1 ? (sumFields.has(field1) ? 'Jumlah (SUM)' : 'Rata-rata Harian') : '',
+            font: { size:9 }, color:'#64748b', padding:0
+          }
         }
       },
       animation: { duration:400, easing:'easeOutQuart' }
@@ -5754,10 +6038,22 @@ function initMap(){
   mapInstance._slsLegend = slsLegend;
 
   polyLayerGroup = L.layerGroup().addTo(mapInstance);
-  L.geoJSON(SUBSLS_GEOJSON, {
-    style: {
-      color: '#475569', weight: 0.6, opacity: 0.5,
-      fillColor: 'transparent', fillOpacity: 0
+
+  // Simpan referensi layer SubSLS untuk update highlight
+  mapInstance._subslsGeoLayer = L.geoJSON(SUBSLS_GEOJSON, {
+    style(feature){
+      const p = feature.properties;
+      const subslsName = (p.nmsls || '').toString().trim();
+      const selSubSLS = MS_SELECTED.filterSubSLS;
+      const isSelected = selSubSLS.size > 0 && selSubSLS.has(subslsName);
+      return {
+        color: isSelected ? '#0d6efd' : '#1e3a5f',
+        weight: isSelected ? 4.5 : 2.2,
+        opacity: isSelected ? 1 : 0.75,
+        fillColor: isSelected ? '#0d6efd' : 'transparent',
+        fillOpacity: isSelected ? 0.08 : 0,
+        dashArray: null
+      };
     },
     onEachFeature(feature, layer){
       const p = feature.properties;
@@ -5767,6 +6063,13 @@ function initMap(){
       );
     }
   }).addTo(polyLayerGroup);
+
+  // Fungsi untuk refresh style SubSLS setelah filter berubah
+  mapInstance._refreshSubslsStyle = function(){
+    if(mapInstance._subslsGeoLayer){
+      mapInstance._subslsGeoLayer.resetStyle();
+    }
+  };
 
   pointLayerGroup = L.layerGroup().addTo(mapInstance);
   mapInstance.setView([-8.535, 115.4], 11);
@@ -6350,98 +6653,176 @@ function renderStackedBar(){
 ══════════════════════════════════════ */
 let sb2ChartInstance = null;
 
-function populateSb2Filters(){
-  const kecEl = document.getElementById('sb2FilterKec');
-  if(!kecEl || !rawData.length) return;
-  const kecs = [...new Set(rawData.map(r=>r.Kecamatan||'').filter(Boolean))].sort();
-  kecEl.innerHTML = '<option value="">Semua</option>' + kecs.map(k=>`<option value="${k}">${k}</option>`).join('');
-  // Isi Pengawas awal (semua)
-  _sb2FillPgw('');
+// ── SB2 Multi-Select State ──
+const SB2_MS_SELECTED = {
+  sb2Kec:  new Set(),
+  sb2Pgw:  new Set(),
+  sb2Cacah: new Set()
+};
+
+function toggleSb2Ms(id){
+  const dropdown = document.getElementById('ms-dropdown-' + id);
+  const trigger  = document.getElementById('ms-trigger-' + id);
+  const isOpen   = dropdown.classList.contains('open');
+  // Tutup semua sb2 dropdown
+  ['sb2Kec','sb2Pgw','sb2Cacah'].forEach(i=>{
+    document.getElementById('ms-dropdown-'+i)?.classList.remove('open');
+    document.getElementById('ms-trigger-'+i)?.classList.remove('active');
+  });
+  if(!isOpen){
+    buildSb2MsList(id);
+    dropdown.classList.add('open');
+    trigger.classList.add('active');
+    const search = dropdown.querySelector('.ms-search');
+    if(search){ search.value=''; filterSb2MsItems(id,''); }
+  }
+}
+
+function buildSb2MsList(id){
+  const listEl = document.getElementById('ms-list-' + id);
+  const sel = SB2_MS_SELECTED[id];
+  let options = [];
+
+  if(id === 'sb2Kec'){
+    options = [...new Set(rawData.map(r=>r.Kecamatan||'').filter(Boolean))].sort();
+  } else if(id === 'sb2Pgw'){
+    const selKec = SB2_MS_SELECTED.sb2Kec;
+    let rows = rawData;
+    if(selKec.size > 0) rows = rows.filter(r=>selKec.has(r.Kecamatan||''));
+    options = [...new Set(rows.map(r=>(PENGAWAS_KEY?r[PENGAWAS_KEY]:r['Pengawas Awal'])||'').filter(Boolean))].sort();
+  } else if(id === 'sb2Cacah'){
+    const selKec = SB2_MS_SELECTED.sb2Kec;
+    const selPgw = SB2_MS_SELECTED.sb2Pgw;
+    let rows = rawData;
+    if(selKec.size > 0) rows = rows.filter(r=>selKec.has(r.Kecamatan||''));
+    if(selPgw.size > 0) rows = rows.filter(r=>selPgw.has((PENGAWAS_KEY?r[PENGAWAS_KEY]:r['Pengawas Awal'])||''));
+    options = [...new Set(rows.map(r=>(PENCACAH_KEY?r[PENCACAH_KEY]:r['Pencacah Awal'])||'').filter(Boolean))].sort();
+  }
+
+  listEl.innerHTML = '';
+  if(!options.length){ listEl.innerHTML='<div class="ms-empty">Tidak ada opsi</div>'; return; }
+  options.forEach(v=>{
+    const checked = sel.has(v);
+    const item = document.createElement('label');
+    item.className = 'ms-item' + (checked?' checked':'');
+    item.innerHTML = `<input type="checkbox" value="${v}" ${checked?'checked':''}><span title="${v}">${v}</span>`;
+    item.querySelector('input').addEventListener('change', function(){
+      if(this.checked){ sel.add(v); item.classList.add('checked'); }
+      else { sel.delete(v); item.classList.remove('checked'); }
+    });
+    listEl.appendChild(item);
+  });
+}
+
+function filterSb2MsItems(id, query){
+  const q = query.toLowerCase();
+  document.querySelectorAll('#ms-list-' + id + ' .ms-item').forEach(item=>{
+    item.style.display = item.querySelector('span').textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function sb2MsSelectAll(id){
+  const sel = SB2_MS_SELECTED[id];
+  document.querySelectorAll(`#ms-list-${id} .ms-item`).forEach(item=>{
+    if(item.style.display==='none') return;
+    const cb = item.querySelector('input');
+    cb.checked=true; sel.add(cb.value); item.classList.add('checked');
+  });
+}
+
+function sb2MsClearAll(id){
+  const sel = SB2_MS_SELECTED[id];
+  document.querySelectorAll(`#ms-list-${id} .ms-item`).forEach(item=>{
+    const cb = item.querySelector('input');
+    cb.checked=false; sel.delete(cb.value); item.classList.remove('checked');
+  });
+}
+
+function updateSb2MsTrigger(id){
+  const sel = SB2_MS_SELECTED[id];
+  const text = document.getElementById('ms-text-' + id);
+  const trigger = document.getElementById('ms-trigger-' + id);
+  const oldBadge = trigger.querySelector('.ms-badge');
+  if(oldBadge) oldBadge.remove();
+  if(sel.size === 0){
+    text.textContent = 'Semua'; text.classList.add('placeholder');
+  } else if(sel.size === 1){
+    text.textContent = [...sel][0]; text.classList.remove('placeholder');
+    const badge = document.createElement('span');
+    badge.className='ms-badge'; badge.textContent='1';
+    trigger.insertBefore(badge, trigger.querySelector('.ms-arrow'));
+  } else {
+    text.textContent = sel.size + ' dipilih'; text.classList.remove('placeholder');
+    const badge = document.createElement('span');
+    badge.className='ms-badge'; badge.textContent=sel.size;
+    trigger.insertBefore(badge, trigger.querySelector('.ms-arrow'));
+  }
+}
+
+function applySb2Ms(id, type){
+  // Tutup dropdown
+  document.getElementById('ms-dropdown-'+id)?.classList.remove('open');
+  document.getElementById('ms-trigger-'+id)?.classList.remove('active');
+  updateSb2MsTrigger(id);
+  // Cascade: saat kec berubah, reset pgw & cacah
+  if(type === 'kec'){
+    SB2_MS_SELECTED.sb2Pgw.clear();
+    SB2_MS_SELECTED.sb2Cacah.clear();
+    updateSb2MsTrigger('sb2Pgw');
+    updateSb2MsTrigger('sb2Cacah');
+  }
+  // Cascade: saat pgw berubah, reset cacah
+  if(type === 'pgw' || type === 'kec'){
+    SB2_MS_SELECTED.sb2Cacah.clear();
+    updateSb2MsTrigger('sb2Cacah');
+  }
   renderStackedBar2();
 }
 
-// Helper: isi dropdown Pengawas berdasarkan kecamatan terpilih
-function _sb2FillPgw(kec){
-  const el = document.getElementById('sb2FilterPgw');
-  if(!el) return;
-  const prevVal = el.value;
-  let rows = rawData;
-  if(kec) rows = rows.filter(r=>r.Kecamatan === kec);
-  const pgws = [...new Set(rows.map(r=>(PENGAWAS_KEY?r[PENGAWAS_KEY]:r['Pengawas Awal'])||'').filter(Boolean))].sort();
-  el.innerHTML = '<option value="">Semua</option>' + pgws.map(p=>`<option value="${p}">${p}</option>`).join('');
-  if(pgws.includes(prevVal)) el.value = prevVal;
-}
-
-// Helper: isi dropdown Pencacah berdasarkan kecamatan & pengawas terpilih
-function _sb2FillCacah(kec, pgw){
-  const el = document.getElementById('sb2FilterCacah');
-  if(!el) return;
-  const prevVal = el.value;
-  let rows = rawData;
-  if(kec) rows = rows.filter(r=>r.Kecamatan === kec);
-  if(pgw) rows = rows.filter(r=>(PENGAWAS_KEY?r[PENGAWAS_KEY]:r['Pengawas Awal'])===pgw);
-  const cacahs = [...new Set(rows.map(r=>(PENCACAH_KEY?r[PENCACAH_KEY]:r['Pencacah Awal'])||'').filter(Boolean))].sort();
-  el.innerHTML = '<option value="">Semua</option>' + cacahs.map(c=>`<option value="${c}">${c}</option>`).join('');
-  if(cacahs.includes(prevVal)) el.value = prevVal;
+function populateSb2Filters(){
+  if(!rawData.length) return;
+  buildSb2MsList('sb2Kec');
+  buildSb2MsList('sb2Pgw');
+  buildSb2MsList('sb2Cacah');
+  updateSb2MsTrigger('sb2Kec');
+  updateSb2MsTrigger('sb2Pgw');
+  updateSb2MsTrigger('sb2Cacah');
+  renderStackedBar2();
 }
 
 function onSb2GroupByChange(){
   const groupBy = document.getElementById('sb2GroupBy').value;
-  // Reset filter geo
-  document.getElementById('sb2FilterKec').value = '';
-  document.getElementById('sb2FilterPgw').value = '';
-  const desaEl = document.getElementById('sb2FilterDesa');
-  desaEl.value = ''; desaEl.disabled = true;
-  desaEl.innerHTML = '<option value="">— Pilih Kecamatan dulu —</option>';
-  document.getElementById('sb2DesaWrap').style.display = 'none';
-  // Tampilkan filter Pencacah hanya di mode Pencacah
+  SB2_MS_SELECTED.sb2Kec.clear();
+  SB2_MS_SELECTED.sb2Pgw.clear();
+  SB2_MS_SELECTED.sb2Cacah.clear();
+  updateSb2MsTrigger('sb2Kec');
+  updateSb2MsTrigger('sb2Pgw');
+  updateSb2MsTrigger('sb2Cacah');
   const cacahWrap = document.getElementById('sb2CacahWrap');
   if(cacahWrap) cacahWrap.style.display = groupBy === 'Pencacah Awal' ? '' : 'none';
-  _sb2FillPgw('');
-  if(groupBy === 'Pencacah Awal') _sb2FillCacah('', '');
-  renderStackedBar2();
-}
-
-function onSb2KecChange(){
-  const kec = document.getElementById('sb2FilterKec').value;
-  const groupBy = document.getElementById('sb2GroupBy').value;
-  // Reset Pengawas & Pencacah cascade
-  document.getElementById('sb2FilterPgw').value = '';
-  _sb2FillPgw(kec);
-  if(groupBy === 'Pencacah Awal'){
-    document.getElementById('sb2FilterCacah').value = '';
-    _sb2FillCacah(kec, '');
-  }
-  renderStackedBar2();
-}
-
-function onSb2PgwChange(){
-  const kec = document.getElementById('sb2FilterKec').value;
-  const pgw = document.getElementById('sb2FilterPgw').value;
-  const groupBy = document.getElementById('sb2GroupBy').value;
-  if(groupBy === 'Pencacah Awal'){
-    document.getElementById('sb2FilterCacah').value = '';
-    _sb2FillCacah(kec, pgw);
-  }
+  const desaEl = document.getElementById('sb2FilterDesa');
+  desaEl.value=''; desaEl.disabled=true;
+  desaEl.innerHTML='<option value="">— Pilih Kecamatan dulu —</option>';
+  document.getElementById('sb2DesaWrap').style.display='none';
   renderStackedBar2();
 }
 
 function resetStackedBar2(){
   document.getElementById('sb2GroupBy').value = 'Pengawas Awal';
-  document.getElementById('sb2FilterKec').value = '';
-  document.getElementById('sb2FilterPgw').value = '';
-  const cacahEl = document.getElementById('sb2FilterCacah');
-  if(cacahEl) cacahEl.value = '';
-  const cacahWrap = document.getElementById('sb2CacahWrap');
-  if(cacahWrap) cacahWrap.style.display = 'none';
+  SB2_MS_SELECTED.sb2Kec.clear();
+  SB2_MS_SELECTED.sb2Pgw.clear();
+  SB2_MS_SELECTED.sb2Cacah.clear();
+  updateSb2MsTrigger('sb2Kec');
+  updateSb2MsTrigger('sb2Pgw');
+  updateSb2MsTrigger('sb2Cacah');
+  document.getElementById('sb2CacahWrap').style.display='none';
   const desaEl = document.getElementById('sb2FilterDesa');
-  desaEl.value = ''; desaEl.disabled = true;
-  desaEl.innerHTML = '<option value="">— Pilih Kecamatan dulu —</option>';
-  document.getElementById('sb2DesaWrap').style.display = 'none';
-  document.getElementById('sb2ValueMode').value = 'both';
-  document.getElementById('sb2SortBy').value = 'total_desc';
-  document.getElementById('sb2AsgnSortWrap').style.display = 'none';
-  _sb2FillPgw('');
+  desaEl.value=''; desaEl.disabled=true;
+  desaEl.innerHTML='<option value="">— Pilih Kecamatan dulu —</option>';
+  document.getElementById('sb2DesaWrap').style.display='none';
+  document.getElementById('sb2ValueMode').value='both';
+  document.getElementById('sb2SortBy').value='total_desc';
+  document.getElementById('sb2AsgnSortWrap').style.display='none';
   renderStackedBar2();
 }
 
@@ -6449,9 +6830,9 @@ function renderStackedBar2(){
   if(!rawData || !rawData.length) return;
 
   const groupBy    = document.getElementById('sb2GroupBy').value;
-  const filterKec  = document.getElementById('sb2FilterKec').value;
-  const filterPgw  = (document.getElementById('sb2FilterPgw')||{}).value || '';
-  const filterCacah= (document.getElementById('sb2FilterCacah')||{}).value || '';
+  const selKec     = SB2_MS_SELECTED.sb2Kec;
+  const selPgw     = SB2_MS_SELECTED.sb2Pgw;
+  const selCacah   = SB2_MS_SELECTED.sb2Cacah;
   const filterDesa = document.getElementById('sb2FilterDesa').value;
   const valMode    = document.getElementById('sb2ValueMode').value;
   const sortBy     = document.getElementById('sb2SortBy').value;
@@ -6462,13 +6843,13 @@ function renderStackedBar2(){
   };
   const field = fieldMap[groupBy];
 
-  // Filter data dengan cascade
+  // Filter data dengan cascade multi-select
   let subset = rawData;
-  if(filterKec)   subset = subset.filter(r=>r.Kecamatan === filterKec);
-  if(filterDesa)  subset = subset.filter(r=>r.Desa === filterDesa);
-  if(filterPgw)   subset = subset.filter(r=>(PENGAWAS_KEY?r[PENGAWAS_KEY]:r['Pengawas Awal']) === filterPgw);
-  if(filterCacah && groupBy === 'Pencacah Awal')
-                  subset = subset.filter(r=>(PENCACAH_KEY?r[PENCACAH_KEY]:r['Pencacah Awal']) === filterCacah);
+  if(selKec.size > 0)   subset = subset.filter(r=>selKec.has(r.Kecamatan||''));
+  if(filterDesa)        subset = subset.filter(r=>r.Desa === filterDesa);
+  if(selPgw.size > 0)   subset = subset.filter(r=>selPgw.has((PENGAWAS_KEY?r[PENGAWAS_KEY]:r['Pengawas Awal'])||''));
+  if(selCacah.size > 0 && groupBy === 'Pencacah Awal')
+                        subset = subset.filter(r=>selCacah.has((PENCACAH_KEY?r[PENCACAH_KEY]:r['Pencacah Awal'])||''));
 
   // Kelompokkan per petugas
   const groups = {};
