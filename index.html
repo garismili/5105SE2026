@@ -1039,10 +1039,6 @@ body {
         <select id="pvFilterKabupaten" class="form-select"><option value="">Semua</option></select>
       </div>
       <div class="col-md-auto" style="min-width:130px">
-        <label class="filter-label">Filter Kecamatan</label>
-        <select id="pvFilterKecamatan" class="form-select"><option value="">Semua</option></select>
-      </div>
-      <div class="col-md-auto" style="min-width:130px">
         <label class="filter-label">Filter Desa</label>
         <select id="pvFilterDesa" class="form-select"><option value="">Semua</option></select>
       </div>
@@ -1067,7 +1063,7 @@ body {
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetPivot()">Reset</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotCSV()">↓ CSV</button>
           <button type="button" class="btn btn-outline-success btn-sm" onclick="exportPivotExcel()" style="background:#e8f5e9;border-color:#2e7d32;color:#1b5e20" title="Download tabel pivot sebagai file Excel (.xlsx)">↓ Excel</button>
-          <button type="button" class="btn btn-outline-warning btn-sm" onclick="showColumnNames()" title="Lihat nama semua kolom CSV">🔍 Kolom</button>
+          <button type="button" class="btn btn-outline-warning btn-sm" onclick="openKolomModal()" title="Cari data di semua kolom CSV">🔍 Kolom</button>
         </div>
       </div>
     </div>
@@ -2290,22 +2286,24 @@ function makeCard(label, jumlah, persen){
     </div></div>
   </div>`;
 }
-// Kartu statistik tanpa progress bar (untuk Progres Kemarin & Rata-rata Capaian)
+// Kartu statistik (legacy - masih bisa dipakai)
 function makeStatCard(label, valDisplay, subText, color){
-  return `<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-    <div class="card summary-card" style="border-left:4px solid ${color}"><div class="card-body">
-      <div class="sc-label">${label}</div>
-      <div class="sc-val" style="color:${color}">${valDisplay}</div>
-      <div class="sc-pct">${subText}</div>
-    </div></div>
-  </div>`;
+  return '<div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">'
+    + '<div class="card summary-card" style="border-left:4px solid ' + color + '"><div class="card-body">'
+    + '<div class="sc-label">' + label + '</div>'
+    + '<div class="sc-val" style="color:' + color + '">' + valDisplay + '</div>'
+    + '<div class="sc-pct">' + subText + '</div>'
+    + '</div></div></div>';
 }
 function updateProgresCards(data){
   const el = document.getElementById("progresCards");
   if(!el) return;
   el.innerHTML = "";
 
-  // Card 1 & 2: SUM dari "Progres Pencacahan Kemarin" & "Progres Pemeriksaan Kemarin"
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
   let sumCacah = 0, sumRiksa = 0;
   if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
     data.forEach(r=>{
@@ -2320,15 +2318,6 @@ function updateProgresCards(data){
     });
   }
 
-  // Card 3 & 4: rata-rata Capaian Harian Pencacahan & Pengawasan
-  // Mengikuti perhitungan yang sama seperti pivot Username × Assignment:
-  //   Capaian Pencacahan = (Target Pencacah - OPEN) / hariKerja, dirata-rata per username
-  //   Capaian Pengawasan = (Approved+Rejected+Revoked by Pengawas) / hariKerja, dirata-rata per username
-  const START_DATE = new Date('2026-06-08T00:00:00');
-  const today      = new Date(); today.setHours(0,0,0,0);
-  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
-
-  // Hitung target per Pencacah Awal (dari seluruh rawData, sesuai pivot)
   const pencacahCount = {};
   if(PENCACAH_KEY){
     rawData.forEach(row=>{
@@ -2337,8 +2326,7 @@ function updateProgresCards(data){
     });
   }
 
-  // Group `data` (sesuai filter aktif) per Username, hitung count per Assignment status
-  const usernameCount = {}; // {username: {assignmentStatus: count}}
+  const usernameCount = {};
   const usernames = new Set();
   data.forEach(row=>{
     const uname = row.Username || '';
@@ -2349,70 +2337,145 @@ function updateProgresCards(data){
     usernameCount[uname][asgn] = (usernameCount[uname][asgn]||0) + 1;
   });
 
-  // Cari nama status Assignment untuk OPEN dan Approved/Rejected/Revoked by Pengawas
   const allAsgnKeys = new Set();
   data.forEach(row=>{ if(row.Assignment) allAsgnKeys.add(row.Assignment); });
-  const openColKey = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
-  const apvPgwKey  = [...allAsgnKeys].find(k=>/approved.+pengawas/i.test(k));
-  const rejPgwKey  = [...allAsgnKeys].find(k=>/rejected.+pengawas/i.test(k));
-  const revPgwKey  = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
+  const openColKey   = [...allAsgnKeys].find(k=>/^open$/i.test(k)) || [...allAsgnKeys].find(k=>/open/i.test(k));
+  const submitPcKey  = [...allAsgnKeys].find(k=>/submitted.+pencacah/i.test(k));
+  const apvPgwKey    = [...allAsgnKeys].find(k=>/approved.+pengawas/i.test(k));
+  const rejPgwKey    = [...allAsgnKeys].find(k=>/rejected.+pengawas/i.test(k));
+  const revPgwKey    = [...allAsgnKeys].find(k=>/revoked.+pengawas/i.test(k));
 
   let totalCapaianCacah = 0, nCacah = 0;
   let totalCapaianRiksa = 0, nRiksa = 0;
+  let totalOpen = 0, totalTarget = 0;
+  let totalSubmit = 0, totalRejected = 0, totalApproved = 0;
+
   usernames.forEach(uname=>{
     const counts = usernameCount[uname] || {};
-    // Capaian Pencacahan
-    const target = pencacahCount[uname] || 0;
+    const target  = pencacahCount[uname] || 0;
+    const openV   = openColKey  ? (counts[openColKey]  || 0) : 0;
+    const subV    = submitPcKey ? (counts[submitPcKey] || 0) : 0;
+    const apvV    = apvPgwKey   ? (counts[apvPgwKey]   || 0) : 0;
+    const rejV    = rejPgwKey   ? (counts[rejPgwKey]   || 0) : 0;
+    const revV    = revPgwKey   ? (counts[revPgwKey]   || 0) : 0;
     if(target > 0){
-      const openV   = openColKey ? (counts[openColKey] || 0) : 0;
-      const selesai = target - openV;
-      const capaian = selesai / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){
-        totalCapaianCacah += capaian;
-        nCacah++;
-      }
+      totalTarget += target;
+      totalOpen   += openV;
+      const capaian = (target - openV) / hariKerja;
+      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianCacah += capaian; nCacah++; }
     }
-    // Capaian Pengawasan
-    const apvV = apvPgwKey ? (counts[apvPgwKey] || 0) : 0;
-    const rejV = rejPgwKey ? (counts[rejPgwKey] || 0) : 0;
-    const revV = revPgwKey ? (counts[revPgwKey] || 0) : 0;
     const total3 = apvV + rejV + revV;
     if(total3 > 0){
       const capaian = total3 / hariKerja;
-      if(!isNaN(capaian) && isFinite(capaian)){
-        totalCapaianRiksa += capaian;
-        nRiksa++;
-      }
+      if(!isNaN(capaian) && isFinite(capaian)){ totalCapaianRiksa += capaian; nRiksa++; }
     }
+    totalSubmit   += subV;
+    totalRejected += rejV;
+    totalApproved += apvV;
   });
 
-  const avgCacah = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
-  const avgRiksa = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
+  const avgCacah    = nCacah > 0 ? totalCapaianCacah / nCacah : 0;
+  const avgRiksa    = nRiksa > 0 ? totalCapaianRiksa / nRiksa : 0;
+  const pctOpen     = totalTarget > 0 ? (totalOpen / totalTarget * 100)     : 0;
+  const pctSubmit   = totalTarget > 0 ? (totalSubmit / totalTarget * 100)   : 0;
+  const pctApproved = totalTarget > 0 ? (totalApproved / totalTarget * 100) : 0;
+  const pctRejected = totalTarget > 0 ? (totalRejected / totalTarget * 100) : 0;
 
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Progres Pencacahan Kemarin",
-    sumCacah.toLocaleString(undefined,{maximumFractionDigits:1}),
-    PROGRESS_CACAH_KEY ? "total kemarin" : "kolom tidak ditemukan",
-    "#3b82f6"
-  ));
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Progres Pemeriksaan Kemarin",
-    sumRiksa.toLocaleString(undefined,{maximumFractionDigits:1}),
-    PROGRESS_RIKSA_KEY ? "total kemarin" : "kolom tidak ditemukan",
-    "#22c55e"
-  ));
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Rata-rata Capaian Pencacahan",
-    avgCacah.toLocaleString(undefined,{maximumFractionDigits:1}),
-    nCacah > 0 ? `rata-rata ${nCacah.toLocaleString()} username` : "tidak ada data",
-    "#f59e0b"
-  ));
-  el.insertAdjacentHTML("beforeend", makeStatCard(
-    "Rata-rata Capaian Pemeriksaan",
-    avgRiksa.toLocaleString(undefined,{maximumFractionDigits:1}),
-    nRiksa > 0 ? `rata-rata ${nRiksa.toLocaleString()} username` : "tidak ada data",
-    "#8b5cf6"
-  ));
+  const f1 = v => (+v).toLocaleString('id-ID',{maximumFractionDigits:1});
+  const f0 = v => (+v).toLocaleString('id-ID',{maximumFractionDigits:0});
+
+  // ── Ambil data kemarin dari historiHarianData ──
+  const sortedHarian = [...historiHarianData].filter(d=>d.tanggal).sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+  // Index terakhir = hari ini (atau snapshot terbaru), index kedua dari terakhir = kemarin
+  const hariIniH  = sortedHarian.length >= 1 ? sortedHarian[sortedHarian.length - 1] : null;
+  const kemarinH  = sortedHarian.length >= 2 ? sortedHarian[sortedHarian.length - 2] : null;
+
+  // Helper badge perbandingan: nilai sekarang vs kemarin
+  function diffBadge(now, prev, higherIsBetter = true){
+    if(prev === null || prev === undefined || prev === '' || isNaN(+prev)) return '';
+    const diff = now - (+prev);
+    if(Math.abs(diff) < 0.05) return '<span style="font-size:9px;color:#94a3b8;margin-top:2px;display:block">= sama dengan kemarin (' + f1(+prev) + ')</span>';
+    const up    = diff > 0;
+    const good  = higherIsBetter ? up : !up;
+    const color = good ? '#22c55e' : '#ef4444';
+    const arrow = up ? '▲' : '▼';
+    const label = up ? 'naik' : 'turun';
+    return '<span style="font-size:9px;color:' + color + ';margin-top:2px;display:block;font-weight:600">'
+      + arrow + ' ' + label + ' ' + f1(Math.abs(diff)) + ' dari kemarin (' + f1(+prev) + ')</span>';
+  }
+
+  // Semua prev diambil dari kemarin (bukan hari ini)
+  const prevCacah   = kemarinH ? kemarinH.progresPencacahanKemarin  : null;
+  const prevRiksa   = kemarinH ? kemarinH.progresPemeriksaanKemarin : null;
+  const prevAvgC    = kemarinH ? kemarinH.rataCapaianPencacahan      : null;
+  const prevAvgR    = kemarinH ? kemarinH.rataCapaianPemeriksaan     : null;
+  const prevPctOpen = kemarinH ? kemarinH.totalPersenOpen            : null;
+
+  el.innerHTML = '<div class="col-12">'
+    + '<div class="card" style="border:none;border-radius:14px;box-shadow:0 2px 16px rgba(30,58,95,.10);overflow:hidden">'
+    + '<div class="card-body p-0">'
+
+    /* ── Baris atas: 6 metrik sejajar ── */
+    + '<div style="display:grid;grid-template-columns:repeat(6,1fr)">'
+
+    /* Progres Pencacahan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pencacahan</div>'
+    + '<div style="font-size:22px;font-weight:800;color:#3b82f6;line-height:1">' + f0(sumCacah) + '</div>'
+    + diffBadge(sumCacah, prevCacah, true)
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Assignment dicacah</div>'
+    + '</div>'
+
+    /* Progres Pemeriksaan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Progres Pemeriksaan</div>'
+    + '<div style="font-size:22px;font-weight:800;color:#22c55e;line-height:1">' + f0(sumRiksa) + '</div>'
+    + diffBadge(sumRiksa, prevRiksa, true)
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Assignment diperiksa</div>'
+    + '</div>'
+
+    /* % OPEN / Target */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0;background:#fff7ed">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">% OPEN / Target</div>'
+    + '<div style="font-size:22px;font-weight:800;color:#f97316;line-height:1">' + f1(pctOpen) + '%</div>'
+    + diffBadge(pctOpen, prevPctOpen, false)
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">' + f0(totalOpen) + ' dari ' + f0(totalTarget) + '</div>'
+    + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#fed7aa;overflow:hidden">'
+    + '<div style="height:100%;width:' + Math.min(pctOpen,100) + '%;background:#f97316;border-radius:99px"></div></div>'
+    + '</div>'
+
+    /* Rata-rata Capaian Pencacahan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pencacahan</div>'
+    + '<div style="font-size:22px;font-weight:800;color:#f59e0b;line-height:1">' + f1(avgCacah) + '</div>'
+    + diffBadge(avgCacah, prevAvgC, true)
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Asgn/hari · ' + nCacah + ' Pencacah</div>'
+    + '</div>'
+
+    /* Rata-rata Capaian Pemeriksaan */
+    + '<div style="padding:14px 16px;border-right:1px solid #e2e8f0">'
+    + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Rata-rata Capaian Pemeriksaan</div>'
+    + '<div style="font-size:22px;font-weight:800;color:#8b5cf6;line-height:1">' + f1(avgRiksa) + '</div>'
+    + diffBadge(avgRiksa, prevAvgR, true)
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:3px">Asgn/hari · ' + nRiksa + ' Pengawas</div>'
+    + '</div>'
+
+    /* Sudah Diperiksa Pengawas */
+    + (function(){
+        const totalDiperiksa = totalSubmit + totalRejected + totalApproved;
+        const pctDiperiksa   = totalTarget > 0 ? (totalDiperiksa / totalTarget * 100) : 0;
+        return '<div style="padding:14px 16px;background:#f0f9ff">'
+          + '<div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Sudah Diperiksa Pengawas</div>'
+          + '<div style="font-size:22px;font-weight:800;color:#1e3a5f;line-height:1">' + f0(totalDiperiksa) + '</div>'
+          + '<div style="font-size:9px;font-weight:700;color:#0284c7;margin-top:2px">' + f1(pctDiperiksa) + '% dari ' + f0(totalTarget) + '</div>'
+          + '<div style="margin-top:5px;height:3px;border-radius:99px;background:#bae6fd;overflow:hidden">'
+          + '<div style="height:100%;width:' + Math.min(pctDiperiksa,100) + '%;background:linear-gradient(90deg,#3b82f6,#22c55e);border-radius:99px"></div></div>'
+          + '<div style="font-size:9px;color:#64748b;margin-top:4px">📤 ' + f0(totalSubmit) + ' &nbsp;❌ ' + f0(totalRejected) + ' &nbsp;✅ ' + f0(totalApproved) + '</div>'
+          + '</div>';
+      })()
+
+    + '</div>' /* end grid */
+    + '</div></div></div>'; /* end card-body, card, col */
 }
 
 /* ══════════════════════════════════════
@@ -3269,23 +3332,34 @@ function buildScatterMsList(id) {
   
   let options = [];
 
-  // ── Tren per-grafik: Kecamatan ──
-  if (id === 'trenProgresKec' || id === 'trenCapaianKec' || id === 'trenOpenKec') {
-    options = [...new Set(Object.values(scatterKecMap).filter(Boolean))].sort();
-    // default: semua kosong = Kabupaten
+  // ── Tren per-grafik: Kecamatan — ambil dari field kecamatan di sheet, dipisah per role ──
+  if (id === 'trenProgresKec' || id === 'trenOpenKec') {
+    // Pencacah
+    options = [...new Set(
+      historiUsernameData
+        .filter(r => String(r.user||'').trim() === 'Pencacah' && r.kecamatan)
+        .map(r => r.kecamatan)
+    )].sort();
+  } else if (id === 'trenCapaianKec') {
+    // Pengawas
+    options = [...new Set(
+      historiUsernameData
+        .filter(r => String(r.user||'').trim() === 'Pengawas' && r.kecamatan)
+        .map(r => r.kecamatan)
+    )].sort();
   } else if (id === 'trenProgresUser' || id === 'trenOpenUser') {
-    // Pencacah, filter kecamatan dari chart yg sama
+    // Pencacah, filter kecamatan dari sheet field kecamatan
     const kecId = id.replace('User','Kec');
     const selKec = SCATTER_MS_SELECTED[kecId];
-    let users = [...new Set(historiUsernameData.filter(r=>String(r.user||'').trim()==='Pencacah').map(r=>r.username))].sort();
-    if(selKec.size > 0) users = users.filter(u=>selKec.has(scatterKecMap[u]||'(Kosong)'));
-    options = users;
+    let users = historiUsernameData.filter(r=>String(r.user||'').trim()==='Pencacah');
+    if(selKec.size > 0) users = users.filter(r=>selKec.has(r.kecamatan||''));
+    options = [...new Set(users.map(r=>r.username))].sort();
   } else if (id === 'trenCapaianUser') {
-    // Pengawas
+    // Pengawas, filter kecamatan dari sheet field kecamatan
     const selKec = SCATTER_MS_SELECTED.trenCapaianKec;
-    let users = [...new Set(historiUsernameData.filter(r=>String(r.user||'').trim()==='Pengawas').map(r=>r.username))].sort();
-    if(selKec.size > 0) users = users.filter(u=>selKec.has(scatterKecMap[u]||'(Kosong)'));
-    options = users;
+    let users = historiUsernameData.filter(r=>String(r.user||'').trim()==='Pengawas');
+    if(selKec.size > 0) users = users.filter(r=>selKec.has(r.kecamatan||''));
+    options = [...new Set(users.map(r=>r.username))].sort();
   // ── Tanggal: ambil dari historiUsernameData ──
   } else if (id === 'scatterCacahTgl' || id === 'scatterRiksaTgl') {
     options = [...new Set(historiUsernameData.map(r => r.tanggal).filter(Boolean))].sort();
@@ -3569,6 +3643,7 @@ function loadHistoriUsernameCSV(){
       const iCHC   = findCol(/capaian.{0,6}harian.{0,10}pencacahan/i);
       const iPRK   = findCol(/progres.{0,6}pemer/i);
       const iCHP   = findCol(/capaian.{0,6}harian.{0,10}pengawasan/i);
+      const iKec   = findCol(/kecamatan/i);
 
       console.log('[HistoriCSV] header:', header);
       console.log('[HistoriCSV] col indices — tanggal:', iDate, 'username:', iUname, 'user:', iUser,
@@ -3612,10 +3687,12 @@ function loadHistoriUsernameCSV(){
         }
 
         var iPctOpen = findCol(/% open.{0,10}target/i);
+        var kec   = iKec >= 0 ? (cols[iKec] || '').replace(/"/g,'').trim() : '';
         parsed.push({
           tanggal                   : tgl,
           username                  : uname,
           user                      : user,
+          kecamatan                 : kec,
           progresPencacahanKemarin  : parseNum(iPCK),
           capaianHarianPencacahan   : parseNum(iCHC),
           progresPemeriksaanKemarin : parseNum(iPRK),
@@ -3764,103 +3841,119 @@ function renderTrenChart(chartId){
     return;
   }
 
-  // Mode filter: rata-rata/jumlah per-tanggal, per kecamatan jika >1 kecamatan dipilih
+  // Mode filter: gunakan nilai LANGSUNG dari sheet historiUsernameData per tanggal
+  // Filter kecamatan dari field kecamatan di sheet (bukan scatterKecMap)
   if(!historiUsernameData.length) return;
-  const tanggals = [...new Set(historiUsernameData.map(r=>r.tanggal).filter(Boolean))].sort();
-  const labels   = makeTrenLabels(tanggals);
 
-  // Tentukan role dan field berdasarkan chartId
-  const roleMap   = { Progres:'Pencacah', Capaian:'Pengawas', Open:'Pencacah' };
-  const fieldsMap = {
+  const role   = { Progres:'Pencacah', Capaian:'Pengawas', Open:'Pencacah' }[chartId];
+  const fields = {
     Progres: ['progresPencacahanKemarin','capaianHarianPencacahan'],
     Capaian: ['progresPemeriksaanKemarin','capaianHarianPengawasan'],
     Open:    ['persenOpenTarget']
-  };
-  // Field mana yang harus dijumlah (sum) vs dirata-rata (avg)
+  }[chartId];
   const sumFields = new Set(['progresPencacahanKemarin','progresPemeriksaanKemarin']);
 
-  const labelMap  = {
+  const labelMap = {
     progresPencacahanKemarin:  'Progres Pencacahan Kemarin',
     progresPemeriksaanKemarin: 'Progres Pemeriksaan Kemarin',
     capaianHarianPencacahan:   'Rata-rata Capaian Pencacahan',
     capaianHarianPengawasan:   'Rata-rata Capaian Pemeriksaan',
     persenOpenTarget:          '% OPEN/Target'
   };
-  const colorMapTren  = {
+  const colorMapTren = {
     progresPencacahanKemarin:'#3b82f6',  capaianHarianPencacahan:'#f59e0b',
     progresPemeriksaanKemarin:'#22c55e', capaianHarianPengawasan:'#8b5cf6',
     persenOpenTarget:'#ef4444'
   };
   const titleMap2 = { Progres:'Pencacahan (Filter)', Capaian:'Pemeriksaan (Filter)', Open:'% OPEN/Target (Filter)' };
-
-  const role    = roleMap[chartId];
-  const fields  = fieldsMap[chartId];
-
-  // Filter rows sesuai kec+user
-  let rows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
-  if(userSel.size > 0) rows = rows.filter(r => userSel.has(r.username));
-
-  // Warna per kecamatan
   const KEC_COLORS = ['#3b82f6','#ef4444','#22c55e','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1'];
 
-  // Jika lebih dari 1 kecamatan dipilih → buat series per kecamatan per field
+  // Semua rows dari sheet sesuai role, filter username jika ada
+  let baseRows = historiUsernameData.filter(r => String(r.user||'').trim() === role);
+  if(userSel.size > 0) baseRows = baseRows.filter(r => userSel.has(r.username));
+
+  // Fallback: jika kolom kecamatan di sheet kosong, pakai scatterKecMap dari rawData
+  const hasKecInSheet = baseRows.some(r => r.kecamatan && r.kecamatan.trim());
+  if(!hasKecInSheet){
+    baseRows.forEach(r => {
+      if(!r.kecamatan) r.kecamatan = scatterKecMap[r.username] || '';
+    });
+  }
+
+  // Tanggal unik dari rows yang relevan
+  const tanggals = [...new Set(baseRows.map(r=>r.tanggal).filter(Boolean))].sort();
+  const labels   = makeTrenLabels(tanggals);
+  if(!tanggals.length) return;
+
+  // Helper: hitung series dari subset rows
+  // ── Hitung progres per username dari rawData — pakai fungsi yang sama dengan pivot ──
+  const _liveMetrics = computeUsernameMetricsAsHistori();
+  const rawProgCacah = {}, rawProgRiksa = {};
+  _liveMetrics.forEach(m => {
+    if(m.progresPencacahanKemarin  != null) rawProgCacah[m.username] = m.progresPencacahanKemarin;
+    if(m.progresPemeriksaanKemarin != null) rawProgRiksa[m.username] = m.progresPemeriksaanKemarin;
+  });
+  console.log('[TrenChart] liveMetrics sample:', _liveMetrics.slice(0,3).map(m=>({u:m.username,c:m.progresPencacahanKemarin})));
+
+  function buildSeriesFromRows(rows, field, color, label){
+    const isSum = sumFields.has(field);
+    if(isSum){
+      // Progres = SUM dari rawData per username (sama dengan pivot)
+      const usernamesInRows = [...new Set(rows.map(r => r.username).filter(Boolean))];
+      const progMap = field === 'progresPencacahanKemarin' ? rawProgCacah : rawProgRiksa;
+      const hasRawData = usernamesInRows.some(u => progMap[u] > 0);
+      if(hasRawData){
+        const total = usernamesInRows.reduce((acc, u) => acc + (progMap[u]||0), 0);
+        console.log('[TrenChart] isSum field:', field, 'usernames:', usernamesInRows.length, 'total:', total);
+        return { label, color, data: padN(tanggals.map(() => +total.toFixed(2))) };
+      }
+      // Fallback: rawData belum dimuat atau PROGRESS_KEY tidak ditemukan → SUM dari sheet per tanggal
+      console.warn('[TrenChart] rawProg kosong untuk', field, '— fallback ke sheet values');
+    }
+    // Capaian/rata-rata atau fallback sumFields: baca per tanggal dari sheet
+    const byTgl = {}, cntTgl = {};
+    rows.forEach(r => {
+      const v = numOrNull(r[field]);
+      if(v === null || !r.tanggal) return;
+      byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
+      cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
+    });
+    const isActualSum = sumFields.has(field);
+    return {
+      label, color,
+      data: padN(tanggals.map(t => {
+        if(!cntTgl[t]) return null;
+        return isActualSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
+      }))
+    };
+  }
+
+  // ── Multi kecamatan: 1 series per kecamatan per field ──
   if(kecSel.size > 1){
     const kecList = [...kecSel].sort();
-    const series = [];
-    let colorIdx = 0;
-
-    fields.forEach((field) => {
-      const isSum = sumFields.has(field);
-      kecList.forEach((kec) => {
-        const kecRows = rows.filter(r => (scatterKecMap[r.username]||'(Kosong)') === kec);
-        const byTgl = {}, cntTgl = {};
-        kecRows.forEach(r => {
-          const v = numOrNull(r[field]);
-          if(v === null) return;
-          byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
-          cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
-        });
-        const baseColor = KEC_COLORS[colorIdx % KEC_COLORS.length];
-        colorIdx++;
+    const series  = [];
+    kecList.forEach((kec, ki) => {
+      const kecColor = KEC_COLORS[ki % KEC_COLORS.length];
+      const kecRows  = baseRows.filter(r => (r.kecamatan||'') === kec);
+      fields.forEach(field => {
         series.push({
-          label: `${kec} — ${labelMap[field]}`,
-          data:  padN(tanggals.map(t => {
-            if(!cntTgl[t]) return null;
-            return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
-          })),
-          color: baseColor,
-          _field: field
+          ...buildSeriesFromRows(kecRows, field, kecColor, `${kec} — ${labelMap[field]}`),
+          _field: field, _isAvg: !sumFields.has(field)
         });
       });
     });
-    // Gunakan renderTrendChartMulti yang mendukung banyak series
     renderTrendChartMulti(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, series, titleMap2[chartId]);
     return;
   }
 
-  // Mode 0 atau 1 kecamatan: tampilkan 1-2 series (sum/avg) seperti semula
-  if(kecSel.size === 1) rows = rows.filter(r => kecSel.has(scatterKecMap[r.username]||'(Kosong)'));
+  // ── 0 atau 1 kecamatan ──
+  const filteredRows = kecSel.size === 1
+    ? baseRows.filter(r => kecSel.has(r.kecamatan||''))
+    : baseRows;
 
-  const series = fields.map((field) => {
-    const isSum = sumFields.has(field);
-    const byTgl = {};
-    const cntTgl = {};
-    rows.forEach(r => {
-      const v = numOrNull(r[field]);
-      if(v === null) return;
-      byTgl[r.tanggal]  = (byTgl[r.tanggal]  || 0) + v;
-      cntTgl[r.tanggal] = (cntTgl[r.tanggal] || 0) + 1;
-    });
-    return {
-      label: labelMap[field],
-      data:  padN(tanggals.map(t => {
-        if(!cntTgl[t]) return null;
-        return isSum ? +byTgl[t].toFixed(2) : +(byTgl[t]/cntTgl[t]).toFixed(2);
-      })),
-      color: colorMapTren[field]
-    };
-  });
-
+  const series = fields.map(field =>
+    buildSeriesFromRows(filteredRows, field, colorMapTren[field], labelMap[field])
+  );
   renderTrendChart(canvasMap[chartId], chartVar[chartId], setterMap[chartId], labels, series, titleMap2[chartId]);
 }
 
@@ -3931,6 +4024,8 @@ function loadHistoriHarian(){
 
       historiHarianData = data;
       renderTrenHarian();
+      // Update cards agar badge perbandingan kemarin muncul setelah data histori tersedia
+      if(rawData.length) updateProgresCards(getMainFiltered ? getMainFiltered(null) : rawData);
     })
     .catch(err=>{
       console.warn('Gagal memuat histori harian:', err);
@@ -4268,11 +4363,11 @@ function buildTable(){
    PIVOT — CASCADE FILTERS
 ══════════════════════════════════════ */
 const PV_IDS = ["pvFilterUser","pvFilterUsername","pvFilterPencacah","pvFilterPengawas","pvFilterKabupaten",
-                "pvFilterKecamatan","pvFilterDesa","pvFilterSLS"];
+                "pvFilterDesa","pvFilterSLS"];
 const PV_FIELD = {
   pvFilterUser:"User", pvFilterUsername:"Username",
   pvFilterPencacah:"__pencacah__", pvFilterPengawas:"__pengawas__",
-  pvFilterKabupaten:"Kabupaten", pvFilterKecamatan:"Kecamatan",
+  pvFilterKabupaten:"Kabupaten",
   pvFilterDesa:"Desa", pvFilterSLS:"SLS"
 };
 
@@ -6045,14 +6140,16 @@ function initMap(){
       const p = feature.properties;
       const subslsName = (p.nmsls || '').toString().trim();
       const selSubSLS = MS_SELECTED.filterSubSLS;
-      const isSelected = selSubSLS.size > 0 && selSubSLS.has(subslsName);
+      const hasFilter = selSubSLS.size > 0;
+      const isSelected = hasFilter && selSubSLS.has(subslsName);
+      const isDimmed   = hasFilter && !isSelected;
       return {
-        color: isSelected ? '#0d6efd' : '#1e3a5f',
-        weight: isSelected ? 4.5 : 2.2,
-        opacity: isSelected ? 1 : 0.75,
-        fillColor: isSelected ? '#0d6efd' : 'transparent',
-        fillOpacity: isSelected ? 0.08 : 0,
-        dashArray: null
+        color      : isSelected ? '#0d6efd' : (isDimmed ? '#94a3b8' : '#1e3a5f'),
+        weight     : isSelected ? 5 : (isDimmed ? 0.8 : 2.2),
+        opacity    : isSelected ? 1 : (isDimmed ? 0.3 : 0.75),
+        fillColor  : isSelected ? '#0d6efd' : (isDimmed ? '#94a3b8' : 'transparent'),
+        fillOpacity: isSelected ? 0.12 : (isDimmed ? 0.08 : 0),
+        dashArray  : isDimmed ? '3,3' : null
       };
     },
     onEachFeature(feature, layer){
@@ -7292,5 +7389,224 @@ document.addEventListener('keydown', function(e){
 });
 </script>
 
+<!-- ══ Modal Search Pivot ══ -->
+<div id="kolomModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.25);width:min(900px,97vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid #e2e8f0;background:#f8fafc">
+      <span style="font-size:14px;font-weight:700;color:#1e293b;flex:1">🔍 Cari di Pivot</span>
+      <span id="kolomResultCount" style="font-size:11px;color:#64748b"></span>
+      <button onclick="closeKolomModal()" style="background:none;border:none;font-size:19px;color:#94a3b8;cursor:pointer;padding:0 4px;line-height:1">&times;</button>
+    </div>
+    <!-- Search bar + kolom pencarian -->
+    <div style="padding:10px 18px;border-bottom:1px solid #e2e8f0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="kolomSearchInput" type="text" placeholder="Cari username, kecamatan, desa, SLS…"
+        style="flex:1;min-width:200px;padding:7px 11px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;outline:none"
+        oninput="onKolomSearch(this.value)" onkeydown="if(event.key==='Escape')closeKolomModal()">
+      <select id="kolomColFilter" onchange="onKolomSearch(document.getElementById('kolomSearchInput').value)"
+        style="padding:6px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12px;color:#334155">
+        <option value="">Cari di semua kolom</option>
+      </select>
+    </div>
+    <!-- Hasil pivot -->
+    <div id="kolomBody" style="overflow:auto;flex:1"></div>
+  </div>
+</div>
+
+<script>
+/* ══ Modal Search — tampilkan hasil sebagai tabel pivot ══ */
+
+function openKolomModal(){
+  if(!rawData.length){ alert('Data belum dimuat'); return; }
+
+  // Isi dropdown kolom pencarian dari field rawData yang berguna
+  const GEO  = ['Kecamatan','Desa','SLS','SubSLS'];
+  const USER  = ['Username','Pencacah Awal','Pengawas Awal'];
+  const opts  = [...GEO, ...USER].filter(k => rawData[0].hasOwnProperty(k));
+  const sel   = document.getElementById('kolomColFilter');
+  sel.innerHTML = '<option value="">Cari di semua kolom</option>'
+    + opts.map(k=>`<option value="${k}">${k}</option>`).join('');
+
+  document.getElementById('kolomSearchInput').value = '';
+  document.getElementById('kolomResultCount').textContent = '';
+  document.getElementById('kolomBody').innerHTML =
+    '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Ketik kata kunci untuk mencari…</div>';
+  document.getElementById('kolomModal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('kolomSearchInput').focus(), 50);
+}
+
+function closeKolomModal(){
+  document.getElementById('kolomModal').style.display = 'none';
+}
+
+function onKolomSearch(q){
+  q = (q||'').trim();
+  const colFilter = document.getElementById('kolomColFilter').value;
+  const body      = document.getElementById('kolomBody');
+  const countEl   = document.getElementById('kolomResultCount');
+
+  if(!q){
+    body.innerHTML = '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Ketik kata kunci untuk mencari…</div>';
+    countEl.textContent = '';
+    return;
+  }
+
+  const ql = q.toLowerCase();
+
+  // Filter rawData sesuai pencarian
+  const matched = rawData.filter(row => {
+    if(colFilter) return String(row[colFilter]??'').toLowerCase().includes(ql);
+    // Cari di kolom geo + username
+    const GEO_USER = ['Kecamatan','Desa','SLS','SubSLS','Username','Pencacah Awal','Pengawas Awal'];
+    return GEO_USER.some(k => String(row[k]??'').toLowerCase().includes(ql));
+  });
+
+  if(!matched.length){
+    body.innerHTML = '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:13px">Tidak ada hasil untuk "<b>' + q + '</b>"</div>';
+    countEl.textContent = '0 baris';
+    return;
+  }
+
+  countEl.textContent = matched.length.toLocaleString('id-ID') + ' baris';
+
+  // Render tabel pivot dari matched data
+  // Ambil setting pivot aktif
+  const rowField = document.getElementById('pvRowField')?.value || 'Username';
+  const colField = document.getElementById('pvColField')?.value || 'Assignment';
+
+  const START_DATE = new Date('2026-06-08T00:00:00');
+  const today      = new Date(); today.setHours(0,0,0,0);
+  const hariKerja  = Math.max(1, Math.floor((today - START_DATE) / 86400000));
+
+  const rowKeys = [...new Set(matched.map(r => r[rowField]||'(Kosong)'))].sort();
+  const colKeys = [...new Set(matched.map(r => r[colField]||'(Kosong)'))].sort();
+
+  // Hitung count per sel pivot
+  const count = {}, rowTotal = {}, colTotal = {}; let grand = 0;
+  rowKeys.forEach(r=>{ count[r]={}; rowTotal[r]=0; });
+  colKeys.forEach(c=>{ colTotal[c]=0; });
+  matched.forEach(row=>{
+    const r = row[rowField]||'(Kosong)', c = row[colField]||'(Kosong)';
+    count[r][c] = (count[r][c]||0)+1;
+    rowTotal[r]++;
+    colTotal[c]++;
+    grand++;
+  });
+
+  // Progres pencacahan & pemeriksaan per rowKey
+  const progCacah = {}, progRiksa = {};
+  if(PROGRESS_CACAH_KEY || PROGRESS_RIKSA_KEY){
+    matched.forEach(row=>{
+      const r = row[rowField]||'(Kosong)';
+      if(PROGRESS_CACAH_KEY){
+        const v = parseFloat(String(row[PROGRESS_CACAH_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) progCacah[r] = (progCacah[r]||0)+v;
+      }
+      if(PROGRESS_RIKSA_KEY){
+        const v = parseFloat(String(row[PROGRESS_RIKSA_KEY]||'').replace('%','').replace(',','.'));
+        if(!isNaN(v)) progRiksa[r] = (progRiksa[r]||0)+v;
+      }
+    });
+  }
+
+  // Target per username (Pencacah Awal)
+  const pencacahCount = {};
+  if(PENCACAH_KEY) rawData.forEach(row=>{
+    const p = row[PENCACAH_KEY]||''; if(p) pencacahCount[p]=(pencacahCount[p]||0)+1;
+  });
+
+  const filterUserVal = document.getElementById('pvFilterUser')?.value||'';
+  const isPencacahMode = rowField==='Pencacah Awal'||(rowField==='Username'&&/pencacah/i.test(filterUserVal));
+  const isPengawasMode = rowField==='Pengawas Awal'||(rowField==='Username'&&/pengawas/i.test(filterUserVal));
+  const isGeoRow = ['Kabupaten','Kecamatan','Desa','SLS'].includes(rowField);
+  const showV = PROGRESS_CACAH_KEY && (isPencacahMode||isGeoRow);
+  const showW = PROGRESS_RIKSA_KEY && (isPengawasMode||isGeoRow);
+  const showPencacah = showPencacah || isPencacahMode || isPengawasMode;
+
+  // Warna per assignment status (sama dengan pivot utama)
+  const ASGN_COLOR = {
+    'OPEN':'#64748b','SUBMITTED BY PENCACAH':'#3b82f6',
+    'APPROVED BY PENGAWAS':'#22c55e','REJECTED BY PENGAWAS':'#ef4444',
+    'REVOKED BY PENGAWAS':'#f97316'
+  };
+  function aColor(c){ return ASGN_COLOR[c.toUpperCase()]||'#334155'; }
+
+  const f1 = v => (+v).toLocaleString('id-ID',{maximumFractionDigits:1});
+  const f0 = v => (+v).toLocaleString('id-ID',{maximumFractionDigits:0});
+
+  // Highlight kata kunci di teks
+  const hl = txt => {
+    const i = String(txt).toLowerCase().indexOf(ql);
+    if(i<0) return String(txt);
+    return String(txt).slice(0,i)+'<mark style="background:#fef08a;border-radius:2px;padding:0">'+String(txt).slice(i,i+q.length)+'</mark>'+String(txt).slice(i+q.length);
+  };
+
+  // Build thead
+  let th = `<thead><tr style="position:sticky;top:0;z-index:2;background:#1e3a5f;color:#fff">
+    <th style="padding:7px 10px;font-size:11px;font-weight:600;text-align:left;white-space:nowrap;min-width:140px">${rowField}</th>`;
+  colKeys.forEach(c=>{
+    th += `<th style="padding:7px 8px;font-size:10px;font-weight:600;text-align:center;white-space:nowrap;color:${aColor(c)};background:#1e3a5f">${c}</th>`;
+  });
+  th += `<th style="padding:7px 8px;font-size:11px;font-weight:700;text-align:center;background:#1e3a5f">TOTAL</th>`;
+  if(showV) th += `<th style="padding:7px 8px;font-size:10px;text-align:center;background:#1e3a5f;white-space:nowrap">Prog. Cacah</th>`;
+  if(showW) th += `<th style="padding:7px 8px;font-size:10px;text-align:center;background:#1e3a5f;white-space:nowrap">Prog. Riksa</th>`;
+  if(isPencacahMode) th += `<th style="padding:7px 8px;font-size:10px;text-align:center;background:#1e3a5f">Target</th>
+    <th style="padding:7px 8px;font-size:10px;text-align:center;background:#1e3a5f">Capaian/hari</th>`;
+  th += '</tr></thead>';
+
+  // Build tbody
+  const MAX = 300;
+  let tb = '<tbody>';
+  rowKeys.slice(0, MAX).forEach((r, ri)=>{
+    const bg = ri%2===0 ? '#fff' : '#f8fafc';
+    tb += `<tr style="background:${bg}"><td style="padding:5px 10px;font-size:12px;font-weight:500;color:#1e3a5f;border-bottom:1px solid #f1f5f9">${hl(r)}</td>`;
+    colKeys.forEach(c=>{
+      const v = count[r][c]||0;
+      tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;color:${v?aColor(c):'#cbd5e1'};font-weight:${v?'600':'400'};border-bottom:1px solid #f1f5f9">${v||'—'}</td>`;
+    });
+    tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #f1f5f9">${f0(rowTotal[r])}</td>`;
+    if(showV) tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;color:#3b82f6;font-weight:600;border-bottom:1px solid #f1f5f9">${progCacah[r]!==undefined?f0(progCacah[r]):'—'}</td>`;
+    if(showW) tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;color:#22c55e;font-weight:600;border-bottom:1px solid #f1f5f9">${progRiksa[r]!==undefined?f0(progRiksa[r]):'—'}</td>`;
+    if(isPencacahMode){
+      const target  = pencacahCount[r]||0;
+      const openV   = count[r]['OPEN']||0;
+      const capaian = target>0 ? ((target-openV)/hariKerja) : null;
+      tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;border-bottom:1px solid #f1f5f9">${target||'—'}</td>`;
+      tb += `<td style="padding:5px 8px;text-align:center;font-size:12px;color:#f59e0b;font-weight:600;border-bottom:1px solid #f1f5f9">${capaian!==null?f1(capaian):'—'}</td>`;
+    }
+    tb += '</tr>';
+  });
+
+  // Total row
+  tb += `<tr style="background:#1e3a5f;color:#fff;font-weight:700"><td style="padding:6px 10px;font-size:12px">TOTAL</td>`;
+  colKeys.forEach(c=>{
+    tb += `<td style="padding:6px 8px;text-align:center;font-size:12px">${f0(colTotal[c])}</td>`;
+  });
+  tb += `<td style="padding:6px 8px;text-align:center;font-size:12px">${f0(grand)}</td>`;
+  if(showV){
+    const totV = Object.values(progCacah).reduce((a,b)=>a+b,0);
+    tb += `<td style="padding:6px 8px;text-align:center;font-size:12px">${f0(totV)}</td>`;
+  }
+  if(showW){
+    const totW = Object.values(progRiksa).reduce((a,b)=>a+b,0);
+    tb += `<td style="padding:6px 8px;text-align:center;font-size:12px">${f0(totW)}</td>`;
+  }
+  if(isPencacahMode) tb += '<td></td><td></td>';
+  tb += '</tr></tbody>';
+
+  body.innerHTML = '<div style="overflow:auto;max-height:100%">'
+    + `<table style="width:100%;border-collapse:collapse;font-family:'Inter',sans-serif">${th}${tb}</table>`
+    + (rowKeys.length>MAX ? `<div style="padding:8px 14px;font-size:11px;color:#94a3b8">Menampilkan ${MAX} dari ${rowKeys.length} baris</div>` : '')
+    + '</div>';
+}
+
+// Tutup modal klik di luar
+document.getElementById('kolomModal').addEventListener('click', function(e){
+  if(e.target === this) closeKolomModal();
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('kolomModal').style.display!=='none') closeKolomModal();
+});
+</script>
 </body>
 </html>
